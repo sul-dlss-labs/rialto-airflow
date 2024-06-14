@@ -78,9 +78,13 @@ x-airflow-common:
     AIRFLOW_VAR_DIMENSIONS_API_PASS: ${AIRFLOW_VAR_DIMENSIONS_API_PASS}
     AIRFLOW_VAR_SUL_PUB_HOST: ${AIRFLOW_VAR_SUL_PUB_HOST}
     AIRFLOW_VAR_SUL_PUB_KEY: ${AIRFLOW_VAR_SUL_PUB_KEY}
+    AIRFLOW_VAR_DATA_DIR: /opt/airflow/data
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/rialto_airflow:/opt/airflow/rialto_airflow
+    # TODO: we may want to put logs and data outside of the project directory so
+    # they can persist across capistrano deploys?
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
   depends_on:
     &airflow-common-depends-on

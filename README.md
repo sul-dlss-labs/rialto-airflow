@@ -1,5 +1,20 @@
 # rialto-airflow
-Airflow for harvesting data for open access analysis and research intelligence.
+
+[![.github/workflows/test.yml](https://github.com/sul-dlss-labs/rialto-airflow/actions/workflows/test.yml/badge.svg)](https://github.com/sul-dlss-labs/rialto-airflow/actions/workflows/test.yml)
+ 
+Airflow for harvesting data for open access analysis and research intelligence. The workflow is integrates data from [sul_pub](https://github.com/sul-dlss/sul_pub), [rialto-orgs](https://github.com/sul-dlss/rialto-orgs), [OpenAlex](https://openalex.org/) and [Dimensions](https://www.dimensions.ai/) APIs to provide a view of publication data for Stanford University research. The basic workflow is: fetch Stanford Research publications from sul_pub, look those publications up in OpenAlex and Dimensions using the DOI, merge the the author/department information found in [rialto_orgs], and publish the data to our JupyterHub environment.
+
+```mermaid
+flowchart TD
+  last_harvest(Determine last harvest) --> sul_pub(Publications from sul_pub) 
+  sul_pub --> extract_doi(Extract DOIs)
+  extract_doi -- DOI --> openalex(OpenAlex)
+  extract_doi -- DOI --> dimensions(Dimensions)
+  dimensions --> merge_pubs(Merge Publications)
+  openalex --> merge_pubs(Merge Publications)
+  merge_pubs -- SUNETID --> join_departments(Join Departments)
+  join_departments --> publish(Publish)
+```
 
 ## Running Locally with Docker
 
@@ -11,19 +26,22 @@ Based on the documentation, [Running Airflow in Docker](https://airflow.apache.o
 
 3. Create a `.env` file with the `AIRFLOW_UID` and `AIRFLOW_GROUP` values. For local development these can usually be:
 ```
- AIRFLOW_UID=50000
- AIRFLOW_GROUP=0
- ```
+AIRFLOW_UID=50000
+AIRFLOW_GROUP=0
+AIRFLOW_VAR_DATA_DIR="data"
+```
 (See [Airflow docs](https://airflow.apache.org/docs/apache-airflow/2.9.2/howto/docker-compose/index.html#setting-the-right-airflow-user) for more info.)
 
 4. Add to the `.env` values for any environment variables used by DAGs. Not in place yet--they will usually applied to VMs by puppet once productionized.
 
-These environment variables must be prefixed with `AIRFLOW_VAR_` to be accessible to DAGs. (See [Airflow env var documentation](https://airflow.apache.org/docs/apache-airflow/stable/howto/variable.html#storing-variables-in-environment-variables and `docker-compose.yml`).) They can have placeholder values. The secrets will be in vault, not prefixed by `AIRFLOW_VAR_`: `vault kv list puppet/application/rialto_airflow/{env}`.
+Here is an script to generate content for your dev .env file:
 
-  Example script to quickly populate your .env file for dev:
-  ```
-  for i in `vault kv list puppet/application/rialto_airflow/dev`; do val=$(echo $i| tr '[a-z]' '[A-Z]'); echo AIRFLOW_VAR_$val=`vault kv get -field=content puppet/application/rialto_airflow/dev/$i`; done
-  ```
+```
+for i in `vault kv list -format yaml puppet/application/rialto-airflow/dev | sed 's/- //'` ; do \
+  val=$(echo $i| tr '[a-z]' '[A-Z]'); \
+  echo AIRFLOW_VAR_$val=`vault kv get -field=content puppet/application/rialto-airflow/dev/$i`; \
+done
+```
 
 ## Development
 
@@ -56,3 +74,23 @@ uv pip compile pyproject.toml -o requirements.txt
 ```
 
 Unlike poetry, uv's dependency resolution is not platform-agnostic. If we find we need to generate a requirements.txt for linux, we can use [uv's multi-platform resolution options](https://github.com/astral-sh/uv?tab=readme-ov-file#multi-platform-resolution).
+
+## Run Tests
+
+First enable the virtual environment:
+
+```
+source .venv/bin/activate
+```
+
+Then ensure the app dependencies and dev dependencies are installed.
+
+```
+uv pip install -r requirements.txt -r requirements-dev.txt
+```
+
+Then run the tests:
+
+```
+pytest
+```
