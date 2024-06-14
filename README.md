@@ -24,3 +24,35 @@ These environment variables must be prefixed with `AIRFLOW_VAR_` to be accessibl
   ```
   for i in `vault kv list puppet/application/rialto_airflow/dev`; do val=$(echo $i| tr '[a-z]' '[A-Z]'); echo AIRFLOW_VAR_$val=`vault kv get -field=content puppet/application/rialto_airflow/dev/$i`; done
   ```
+
+## Development
+
+### Set-up
+
+1. Install `uv` for dependency management as described in [the uv docs](https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started).
+2. Create a virtual environment:
+```
+uv venv
+```
+
+This will create the virtual environment at the default location of `.venv/`. `uv` automatically looks for a venv at this location when installing dependencies. 
+
+3. Activate the virtual environment:
+```
+source .venv/bin/activate
+```
+
+### Install dependencies
+```
+uv pip install -r requirements.txt
+```
+
+To add a dependency:
+1. `uv pip install flask`
+2. Add the dependency to `pyproject.toml`.
+3. To re-generate the locked dependencies in `requirements.txt`:
+```
+uv pip compile pyproject.toml -o requirements.txt 
+```
+
+Unlike poetry, uv's dependency resolution is not platform-agnostic. If we find we need to generate a requirements.txt for linux, we can use [uv's multi-platform resolution options](https://github.com/astral-sh/uv?tab=readme-ov-file#multi-platform-resolution).
