@@ -18,9 +18,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Lint
+      - name: Lint and format
         uses: chartboost/ruff-action@v1
         # it may move, see https://github.com/astral-sh/ruff/issues/8400
+        with:
+          args: 'format --check'
 
       - name: Install dependencies
         run: |
