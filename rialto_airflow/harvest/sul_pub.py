@@ -46,9 +46,9 @@ def harvest(host, key, since, limit):
 
     http_headers = {"CAPKEY": key}
 
-    params = { "per": 1000 }
+    params = {"per": 1000}
     if since:
-        params["changedSince"] = since.strftime('%Y-%m-%d')
+        params["changedSince"] = since.strftime("%Y-%m-%d")
 
     page = 0
     record_count = 0
@@ -56,13 +56,13 @@ def harvest(host, key, since, limit):
 
     while more:
         page += 1
-        params['page'] = page
+        params["page"] = page
 
         logging.info(f"fetching sul_pub results {url} {params}")
         resp = requests.get(url, params=params, headers=http_headers)
         resp.raise_for_status()
 
-        records = resp.json()['records']
+        records = resp.json()["records"]
         if len(records) == 0:
             more = False
 

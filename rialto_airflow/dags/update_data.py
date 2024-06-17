@@ -11,13 +11,13 @@ data_dir = Variable.get("data_dir")
 sul_pub_host = Variable.get("sul_pub_host")
 sul_pub_key = Variable.get("sul_pub_key")
 
+
 @dag(
     schedule=None,
     start_date=datetime.datetime(2024, 1, 1),
     catchup=False,
 )
 def update_data():
-    
     @task(multiple_outputs=True)
     def setup():
         """
@@ -25,7 +25,7 @@ def update_data():
         """
         return {
             "last_harvest": last_harvest(),
-            "snapshot_dir": create_snapshot_dir(data_dir)
+            "snapshot_dir": create_snapshot_dir(data_dir),
         }
 
     @task()
@@ -42,7 +42,7 @@ def update_data():
     def extract_doi(sulpub):
         """
         Extract a unique list of DOIs from the new publications data.
-        """ 
+        """
         return True
 
     @task()
@@ -96,5 +96,6 @@ def update_data():
     contribs = merge_contributors(pubs)
     dataset = create_dataset(pubs, contribs)
     publish(dataset)
+
 
 update_data()
