@@ -94,3 +94,9 @@ Then run the tests:
 ```
 pytest
 ```
+
+### Linting and formatting
+
+1. Run linting: `ruff check`
+2. Automatically fix linting: `ruff check --fix`
+3. Run formatting: `ruff format` (or `ruff format --check` to identify any unformatted files)
