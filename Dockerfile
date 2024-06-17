@@ -10,5 +10,4 @@ USER airflow
 COPY rialto_airflow ./rialto_airflow
 COPY requirements.txt ./
 
-RUN uv pip install --no-cache -r requirements.txt
-
+RUN uv pip install --no-cache "apache-airflow==${AIRFLOW_VERSION}" -r requirements.txt
