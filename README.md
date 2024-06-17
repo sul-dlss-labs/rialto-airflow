@@ -1,19 +1,38 @@
 # rialto-airflow
 
 [![.github/workflows/test.yml](https://github.com/sul-dlss-labs/rialto-airflow/actions/workflows/test.yml/badge.svg)](https://github.com/sul-dlss-labs/rialto-airflow/actions/workflows/test.yml)
- 
-Airflow for harvesting data for open access analysis and research intelligence. The workflow is integrates data from [sul_pub](https://github.com/sul-dlss/sul_pub), [rialto-orgs](https://github.com/sul-dlss/rialto-orgs), [OpenAlex](https://openalex.org/) and [Dimensions](https://www.dimensions.ai/) APIs to provide a view of publication data for Stanford University research. The basic workflow is: fetch Stanford Research publications from sul_pub, look those publications up in OpenAlex and Dimensions using the DOI, merge the the author/department information found in [rialto_orgs], and publish the data to our JupyterHub environment.
+
+Airflow for harvesting data for open access analysis and research intelligence. The workflow integrates data from [sul_pub](https://github.com/sul-dlss/sul_pub), [rialto-orgs](https://github.com/sul-dlss/rialto-orgs), [OpenAlex](https://openalex.org/) and [Dimensions](https://www.dimensions.ai/) APIs to provide a view of publication data for Stanford University research. The basic workflow is: fetch Stanford Research publications from SUL-Pub, OpenAlex, and Dimensions, enrich them with additional metadata from OpenAlex and Dimensions using the DOI, merge the organizational data found in [rialto_orgs], and publish the data to our JupyterHub environment.
 
 ```mermaid
 flowchart TD
-  last_harvest(Determine last harvest) --> sul_pub(Publications from sul_pub) 
-  sul_pub --> extract_doi(Extract DOIs)
-  extract_doi -- DOI --> openalex(OpenAlex)
-  extract_doi -- DOI --> dimensions(Dimensions)
-  dimensions --> merge_pubs(Merge Publications)
-  openalex --> merge_pubs(Merge Publications)
-  merge_pubs -- SUNETID --> join_departments(Join Departments)
-  join_departments --> publish(Publish)
+  last_harvest(Determine last harvest) --> sul_pub_harvest(SUL-Pub harvest)
+  sul_pub_harvest --> sul_pub_pubs[/SUL-Pub publications/]
+  rialto_orgs_export --> last_harvest
+  last_harvest --> dimensions_harvest_orcid(Dimensions harvest ORCID)
+  last_harvest --> openalex_harvest_orcid(OpenAlex harvest ORCID)
+  dimensions_harvest_orcid --> dimensions_contribs[/Dimensions contributions/]
+  openalex_harvest_orcid --> openalex_contribs[/OpenAlex contributions/]
+  dimensions_contribs --> contribs_to_pubs
+  openalex_contribs --> contribs_to_pubs
+  contribs_to_pubs --> dimensions_pubs[/Dimensions publications/]
+  contribs_to_pubs --> openalex_pubs[/OpenAlex publications/]
+  dimensions_pubs -- DOI --> merge_pubs(Merge publications)
+  openalex_pubs -- DOI --> merge_pubs(Merge publications)
+  sul_pub_pubs -- DOI --> merge_pubs(Merge publications)
+  merge_pubs --> drop_duplicates(Remove duplicates)
+  drop_duplicates --> all_pubs[/All publications/]
+  all_pubs --> extract_dois(Extract DOIs)
+  extract_dois --> dois[/Unique DOIs/]
+  dois --> dimensions_enrich(Dimensions harvest DOI)
+  dois --> openalex_enrich(OpenAlex harvest DOI)
+  openalex_enrich --> openalex_enriched[/OpenAlex enriched publications/]
+  dimensions_enriched -- DOI --> merge_pubs_two(Merge publications)
+  openalex_enriched -- DOI --> merge_pubs_two(Merge publications)
+  rialto_orgs_export --> join_org_data
+  merge_pubs_two -- SUNETID --> join_org_data(Join organizational data)
+  join_org_data --> all_enriched_publications[/All enriched publications/]
+  all_enriched_publications --> publish(Publish)
 ```
 
 ## Running Locally with Docker
@@ -53,7 +72,7 @@ done
 uv venv
 ```
 
-This will create the virtual environment at the default location of `.venv/`. `uv` automatically looks for a venv at this location when installing dependencies. 
+This will create the virtual environment at the default location of `.venv/`. `uv` automatically looks for a venv at this location when installing dependencies.
 
 3. Activate the virtual environment:
 ```
@@ -70,7 +89,7 @@ To add a dependency:
 2. Add the dependency to `pyproject.toml`.
 3. To re-generate the locked dependencies in `requirements.txt`:
 ```
-uv pip compile pyproject.toml -o requirements.txt 
+uv pip compile pyproject.toml -o requirements.txt
 ```
 
 Unlike poetry, uv's dependency resolution is not platform-agnostic. If we find we need to generate a requirements.txt for linux, we can use [uv's multi-platform resolution options](https://github.com/astral-sh/uv?tab=readme-ov-file#multi-platform-resolution).
