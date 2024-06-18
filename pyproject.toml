@@ -2,12 +2,13 @@
 name = "rialto-airflow"
 version = "0.1.0"
 description = "Airflow app for harvesting data for open access analysis and research intelligence."
-authors = [ {name = "Laura Wrubel", email = "lwrubel@stanford.edu"}, {name = "Ed Summers", email = "edsu@stanford.edu"}]
+authors = [ {name = "Laura Wrubel", email = "lwrubel@stanford.edu"}, {name = "Ed Summers", email = "edsu@stanford.edu"}, {name = "Jacob Hill", email = "jacob.hill@stanford.edu"}]
 requires-python = ">= 3.12"
 dependencies = [
     "pandas",
     "requests",
-    "python-dotenv"
+    "python-dotenv",
+    "dimcli"
 ]
 
 [tool.pytest.ini_options]
