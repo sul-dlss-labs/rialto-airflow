@@ -8,31 +8,31 @@ Airflow for harvesting data for open access analysis and research intelligence. 
 flowchart TD
   last_harvest(Determine last harvest) --> sul_pub_harvest(SUL-Pub harvest)
   sul_pub_harvest --> sul_pub_pubs[/SUL-Pub publications/]
-  rialto_orgs_export --> last_harvest
+  rialto_orgs_export(Manual RIALTO app export) --> org_data[/Stanford organizational data/]
   last_harvest --> dimensions_harvest_orcid(Dimensions harvest ORCID)
   last_harvest --> openalex_harvest_orcid(OpenAlex harvest ORCID)
-  dimensions_harvest_orcid --> dimensions_contribs[/Dimensions contributions/]
-  openalex_harvest_orcid --> openalex_contribs[/OpenAlex contributions/]
-  dimensions_contribs --> contribs_to_pubs
-  openalex_contribs --> contribs_to_pubs
-  contribs_to_pubs --> dimensions_pubs[/Dimensions publications/]
-  contribs_to_pubs --> openalex_pubs[/OpenAlex publications/]
-  dimensions_pubs -- DOI --> merge_pubs(Merge publications)
-  openalex_pubs -- DOI --> merge_pubs(Merge publications)
-  sul_pub_pubs -- DOI --> merge_pubs(Merge publications)
-  merge_pubs --> drop_duplicates(Remove duplicates)
-  drop_duplicates --> all_pubs[/All publications/]
-  all_pubs --> extract_dois(Extract DOIs)
-  extract_dois --> dois[/Unique DOIs/]
+  org_data --> dimensions_harvest_orcid
+  org_data --> openalex_harvest_orcid
+  dimensions_harvest_orcid --> dimensions_orcid_doi_dict[/Dimensions ORCID-DOI dictionary/]
+  openalex_harvest_orcid --> openalex_orcid_doi_dict[/OpenAlex ORCID-DOI dictionary/]
+  dimensions_orcid_doi_dict -- DOI --> doi_set(DOI set)
+  openalex_orcid_doi_dict -- DOI --> doi_set(DOI set)
+  sul_pub_pubs -- DOI --> doi_set(DOI set)
+  doi_set --> dois[/All unique DOIs/]
   dois --> dimensions_enrich(Dimensions harvest DOI)
   dois --> openalex_enrich(OpenAlex harvest DOI)
-  openalex_enrich --> openalex_enriched[/OpenAlex enriched publications/]
-  dimensions_enriched -- DOI --> merge_pubs_two(Merge publications)
-  openalex_enriched -- DOI --> merge_pubs_two(Merge publications)
-  rialto_orgs_export --> join_org_data
-  merge_pubs_two -- SUNETID --> join_org_data(Join organizational data)
-  join_org_data --> all_enriched_publications[/All enriched publications/]
-  all_enriched_publications --> publish(Publish)
+  dimensions_enrich --> dimensions_enriched[/Dimensions publications/]
+  openalex_enrich --> openalex_enriched[/OpenAlex publications/]
+  dimensions_enriched -- DOI --> merge_pubs(Merge publications)
+  openalex_enriched -- DOI --> merge_pubs
+  sul_pub_pubs -- DOI --> merge_pubs
+  merge_pubs --> all_enriched_publications[/All publications/]
+  all_enriched_publications --> join_org_data(Join organizational data)
+  org_data --> join_org_data
+  join_org_data --> publication_set[/Publication set/]
+  publication_set -- DOI & (ORCID & SUNET) --> contributions(Publications to contributions)
+  contributions --> contributions_set[/Contributions set/]
+  contributions_set --> publish(Publish)
 ```
 
 ## Running Locally with Docker
