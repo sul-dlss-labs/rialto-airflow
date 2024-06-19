@@ -24,7 +24,7 @@ def update_data():
         Setup the data directory to write to and determine the last harvest.
         """
         return {
-            "last_harvest": last_harvest(),
+            "last_harvest": last_harvest(data_dir),
             "snapshot_dir": create_snapshot_dir(data_dir),
         }
 
