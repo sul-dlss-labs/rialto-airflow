@@ -11,8 +11,8 @@ import requests
 dotenv.load_dotenv()
 
 dimcli.login(
-    os.environ.get("DIMENSIONS_API_USER"),
-    os.environ.get("DIMENSIONS_API_PASS"),
+    os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_USER"),
+    os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_PASS"),
     "https://app.dimensions.ai",
 )
 
@@ -65,7 +65,8 @@ def dimensions_doi_orcids_dict(org_data_file, pickle_file, limit=None):
     orcids = df[df["orcidid"].notna()]["orcidid"]
     orcid_dois = {}
 
-    for orcid in orcids[:limit]:
+    for orcid_url in orcids[:limit]:
+        orcid = orcid_url.replace("https://orcid.org/", "")
         dois = list(dimensions_dois_from_orcid(orcid))
         orcid_dois.update({orcid: dois})
 
