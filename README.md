@@ -59,6 +59,9 @@ for i in `vault kv list -format yaml puppet/application/rialto-airflow/dev | sed
 done
 ```
 
+5. The harvest DAG requires a CSV file of authors from rialto-orgs to be available. This is not yet automatically available, so to set up locally, download the file at
+https://sul-rialto-dev.stanford.edu/authors?action=index&commit=Search&controller=authors&format=csv&orcid_filter=&q=. Put the `authors.csv` file in the `data/` directory. 
+
 ## Development
 
 ### Set-up
@@ -75,6 +78,7 @@ This will create the virtual environment at the default location of `.venv/`. `u
 ```
 source .venv/bin/activate
 ```
+
 
 ### Install dependencies
 ```
