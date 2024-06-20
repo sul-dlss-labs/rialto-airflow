@@ -26,15 +26,29 @@ def harvest():
     @task()
     def setup():
         """
-        Setup the data directory to write to and determine the last harvest.
+        Setup the data directory.
         """
         snapshot_dir = create_snapshot_dir(data_dir)
         return snapshot_dir
 
     @task()
-    def fetch_sul_pub(snapshot_dir):
+    def dimensions_harvest_orcid(orcids):
         """
-        Harvest data from sul_pub using the last harvest date.
+        Fetch the data by ORCID from Dimensions.
+        """
+        return True
+
+    @task()
+    def openalex_harvest_orcid(orcids):
+        """
+        Fetch the data by ORCID from OpenAlex.
+        """
+        return True
+
+    @task()
+    def sul_pub_harvest(snapshot_dir):
+        """
+        Harvest data from SUL-Pub.
         """
         csv_file = pathlib.Path(snapshot_dir) / "sulpub.csv"
         sul_pub_csv(csv_file, sul_pub_host, sul_pub_key, limit=dev_limit)
@@ -42,23 +56,24 @@ def harvest():
         return str(csv_file)
 
     @task()
-    def extract_doi(sulpub):
+    def doi_set(dimensions, openalex, sul_pub):
         """
-        Extract a unique list of DOIs from the new publications data.
-        """
-        return True
-
-    @task()
-    def fetch_openalex(dois):
-        """
-        Fetch the data by DOI from OpenAlex.
+        Extract a unique list of DOIs from the dimensions doi-orcid dict,
+        the openalex doi-orcid dict, and the SUL-Pub publications.
         """
         return True
 
     @task()
-    def fetch_dimensions(dois):
+    def dimensions_harvest_doi(dois):
         """
-        Fetch the data by DOI from Dimensions.
+        Harvest publication metadata from Dimensions using the dois from doi_set.
+        """
+        return True
+
+    @task()
+    def openalex_harvest_doi(dois):
+        """
+        Harvest publication metadata from OpenAlex using the dois from doi_set.
         """
         return True
 
@@ -70,16 +85,16 @@ def harvest():
         return True
 
     @task()
-    def merge_contributors(pubs):
+    def join_org_data(pubs, org_data):
         """
-        Merge in contributor and departmental data from rialto-orgs.
+        Add the Stanford organizational data to the publications.
         """
         return True
 
-    @task
-    def create_dataset(pubs, contribs):
+    @task()
+    def pubs_to_contribs(pubs):
         """
-        Aggregate the incremental snapshot data into a single dataset.
+        Get contributions from publications.
         """
         return True
 
@@ -91,14 +106,15 @@ def harvest():
         return True
 
     snapshot_dir = setup()
-    sul_pub = fetch_sul_pub(snapshot_dir)
-    dois = extract_doi(sul_pub)
-    openalex = fetch_openalex(dois)
-    dimensions = fetch_dimensions(dois)
-    pubs = merge_publications(sul_pub, openalex, dimensions)
-    contribs = merge_contributors(pubs)
-    dataset = create_dataset(pubs, contribs)
-    publish(dataset)
+    sul_pub = sul_pub_harvest(snapshot_dir)
+    dimensions_orcid = dimensions_harvest_orcid(snapshot_dir)
+    openalex_orcid = openalex_harvest_orcid(snapshot_dir)
+    dois = doi_set(sul_pub, dimensions_orcid, openalex_orcid)
+    dimensions_doi = dimensions_harvest_doi(dois)
+    openalex_doi = openalex_harvest_doi(dois)
+    pubs = merge_publications(sul_pub, dimensions_doi, openalex_doi)
+    contribs = pubs_to_contribs(pubs)
+    publish(contribs)
 
 
 harvest()
