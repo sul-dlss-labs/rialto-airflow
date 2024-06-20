@@ -73,4 +73,14 @@ def harvest(host, key, since, limit):
                 more = False
                 break
 
-            yield {key: record[key] for key in record if key in sul_pub_fields}
+            pub = {key: record[key] for key in record if key in sul_pub_fields}
+            pub["doi"] = extract_doi(record)
+
+            yield pub
+
+
+def extract_doi(record):
+    for id in record.get("identifier"):
+        if id["type"] == "doi":
+            return id["id"]
+    return None
