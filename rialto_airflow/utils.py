@@ -31,5 +31,6 @@ def rialto_authors_orcids(rialto_authors_file):
         header = next(reader)
         orcidid = header.index("orcidid")
         for row in reader:
-            orcids.append(row[orcidid])
+            if row[orcidid]:
+                orcids.append(row[orcidid])
     return orcids

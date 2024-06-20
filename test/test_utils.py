@@ -12,7 +12,8 @@ def authors_csv(tmp_path):
         writer = csv.writer(csvfile)
         writer.writerow(["sunetid", "orcidid"])
         writer.writerow(["author1", "https://orcid.org/0000-0000-0000-0001"])
-        writer.writerow(["author2", "https://orcid.org/0000-0000-0000-0002"])
+        writer.writerow(["author2", ""])
+        writer.writerow(["author3", "https://orcid.org/0000-0000-0000-0002"])
     return fixture_file
 
 
