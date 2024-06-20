@@ -8,6 +8,8 @@ import time
 import re
 import requests
 
+from rialto_airflow.utils import invert_dict
+
 dotenv.load_dotenv()
 
 dimcli.login(
@@ -19,7 +21,8 @@ dimcli.login(
 dsl = dimcli.Dsl(verbose=False)
 
 
-def dimensions_dois_from_orcid(orcid):
+def dois_from_orcid(orcid):
+    logging.info(f"looking up dois for orcid {orcid}")
     orcid = re.sub(r"^https://orcid.org/", "", orcid)
     q = """
         search publications where researchers.orcid_id = "{}"
@@ -41,33 +44,19 @@ def dimensions_dois_from_orcid(orcid):
     if len(result["publications"]) == 1000:
         logging.warning("Truncated results for ORCID %s", orcid)
     for pub in result["publications"]:
-        if pub.get("doi"):
-            yield "https://doi.org/" + pub["doi"]
+        doi = pub.get("doi")
+        if doi:
+            yield pub["doi"]
 
 
-def invert_dict(dict):
-    # Inverting the dictionary so that DOI is the common key for all tasks.
-    # This adds some complexity here but reduces complexity in downstream tasks.
-    original_values = []
-    for v in dict.values():
-        original_values.extend(v)
-    original_values = list(set(original_values))
-
-    inverted_dict = {}
-    for i in original_values:
-        inverted_dict[i] = [k for k, v in dict.items() if i in v]
-
-    return inverted_dict
-
-
-def dimensions_doi_orcids_dict(org_data_file, pickle_file, limit=None):
+def doi_orcids_pickle(org_data_file, pickle_file, limit=None):
     df = pd.read_csv(org_data_file)
     orcids = df[df["orcidid"].notna()]["orcidid"]
     orcid_dois = {}
 
     for orcid_url in orcids[:limit]:
         orcid = orcid_url.replace("https://orcid.org/", "")
-        dois = list(dimensions_dois_from_orcid(orcid))
+        dois = list(dois_from_orcid(orcid))
         orcid_dois.update({orcid: dois})
 
     with open(pickle_file, "wb") as handle:
