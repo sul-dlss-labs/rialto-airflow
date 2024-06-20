@@ -23,3 +23,8 @@ def test_sul_pub_csv(tmpdir):
     df = pandas.read_csv(csv_file)
     assert len(df) == 2000
     assert "title" in df.columns
+
+    # there should be some dois in here
+    dois = df.doi[df.doi.notna()]
+    assert len(dois) > 1, "there should be at least a few DOIs?"
+    assert not dois.iloc[0].startswith("http://"), "DOI IDs not URLs"
