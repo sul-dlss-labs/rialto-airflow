@@ -1,11 +1,12 @@
 import datetime
-import pathlib
+from pathlib import Path
 
 from airflow.models import Variable
 from airflow.decorators import dag, task
 
-from rialto_airflow.utils import create_snapshot_dir
+from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
 from rialto_airflow.harvest.sul_pub import sul_pub_csv
+from rialto_airflow.harvest import dimensions, openalex
 
 data_dir = Variable.get("data_dir")
 sul_pub_host = Variable.get("sul_pub_host")
@@ -32,25 +33,36 @@ def harvest():
         return snapshot_dir
 
     @task()
-    def dimensions_harvest_orcid(orcids):
+    def find_authors_csv():
+        """
+        Find and return the path to the rialto-orgs authors.csv snapshot.
+        """
+        return rialto_authors_file(data_dir)
+
+    @task()
+    def dimensions_harvest_orcid(authors_csv, snapshot_dir):
         """
         Fetch the data by ORCID from Dimensions.
         """
-        return True
+        pickle_file = Path(snapshot_dir) / "dimensions-doi-orcid.pickle"
+        dimensions.doi_orcids_pickle(authors_csv, pickle_file, limit=dev_limit)
+        return str(pickle_file)
 
     @task()
-    def openalex_harvest_orcid(orcids):
+    def openalex_harvest_orcid(authors_csv, snapshot_dir):
         """
         Fetch the data by ORCID from OpenAlex.
         """
-        return True
+        pickle_file = Path(snapshot_dir) / "openalex-doi-orcid.pickle"
+        openalex.doi_orcids_pickle(authors_csv, pickle_file, limit=dev_limit)
+        return str(pickle_file)
 
     @task()
     def sul_pub_harvest(snapshot_dir):
         """
         Harvest data from SUL-Pub.
         """
-        csv_file = pathlib.Path(snapshot_dir) / "sulpub.csv"
+        csv_file = Path(snapshot_dir) / "sulpub.csv"
         sul_pub_csv(csv_file, sul_pub_host, sul_pub_key, limit=dev_limit)
 
         return str(csv_file)
@@ -85,7 +97,7 @@ def harvest():
         return True
 
     @task()
-    def join_org_data(pubs, org_data):
+    def join_authors(pubs, authors_csv):
         """
         Add the Stanford organizational data to the publications.
         """
@@ -106,14 +118,27 @@ def harvest():
         return True
 
     snapshot_dir = setup()
+
+    authors_csv = find_authors_csv()
+
     sul_pub = sul_pub_harvest(snapshot_dir)
-    dimensions_orcid = dimensions_harvest_orcid(snapshot_dir)
-    openalex_orcid = openalex_harvest_orcid(snapshot_dir)
+
+    dimensions_orcid = dimensions_harvest_orcid(authors_csv, snapshot_dir)
+
+    openalex_orcid = openalex_harvest_orcid(authors_csv, snapshot_dir)
+
     dois = doi_set(sul_pub, dimensions_orcid, openalex_orcid)
+
     dimensions_doi = dimensions_harvest_doi(dois)
+
     openalex_doi = openalex_harvest_doi(dois)
+
     pubs = merge_publications(sul_pub, dimensions_doi, openalex_doi)
-    contribs = pubs_to_contribs(pubs)
+
+    pubs_authors = join_authors(pubs, authors_csv)
+
+    contribs = pubs_to_contribs(pubs_authors)
+
     publish(contribs)
 
 
