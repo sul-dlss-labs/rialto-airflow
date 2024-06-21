@@ -42,7 +42,7 @@ def harvest():
         return rialto_authors_file(data_dir)
 
     @task()
-    def dimensions_harvest_orcid(authors_csv, snapshot_dir):
+    def dimensions_harvest_dois(authors_csv, snapshot_dir):
         """
         Fetch the data by ORCID from Dimensions.
         """
@@ -51,7 +51,7 @@ def harvest():
         return str(pickle_file)
 
     @task()
-    def openalex_harvest_orcid(authors_csv, snapshot_dir):
+    def openalex_harvest_dois(authors_csv, snapshot_dir):
         """
         Fetch the data by ORCID from OpenAlex.
         """
@@ -78,14 +78,14 @@ def harvest():
         return create_doi_set(dimensions, openalex, sul_pub)
 
     @task()
-    def dimensions_harvest_doi(dois):
+    def dimensions_harvest_pubs(dois):
         """
         Harvest publication metadata from Dimensions using the dois from doi_set.
         """
         return True
 
     @task()
-    def openalex_harvest_doi(dois):
+    def openalex_harvest_pubs(dois):
         """
         Harvest publication metadata from OpenAlex using the dois from doi_set.
         """
@@ -125,17 +125,17 @@ def harvest():
 
     sul_pub = sul_pub_harvest(snapshot_dir)
 
-    dimensions_orcid = dimensions_harvest_orcid(authors_csv, snapshot_dir)
+    dimensions_dois = dimensions_harvest_dois(authors_csv, snapshot_dir)
 
-    openalex_orcid = openalex_harvest_orcid(authors_csv, snapshot_dir)
+    openalex_dois = openalex_harvest_dois(authors_csv, snapshot_dir)
 
-    dois = doi_set(dimensions_orcid, openalex_orcid, sul_pub)
+    dois = doi_set(dimensions_dois, openalex_dois, sul_pub)
 
-    dimensions_doi = dimensions_harvest_doi(dois)
+    dimensions_pubs = dimensions_harvest_pubs(dois)
 
-    openalex_doi = openalex_harvest_doi(dois)
+    openalex_pubs = openalex_harvest_pubs(dois)
 
-    pubs = merge_publications(sul_pub, dimensions_doi, openalex_doi)
+    pubs = merge_publications(sul_pub, dimensions_pubs, openalex_pubs)
 
     pubs_authors = join_authors(pubs, authors_csv)
 
