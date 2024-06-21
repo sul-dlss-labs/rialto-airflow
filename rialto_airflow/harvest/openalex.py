@@ -16,9 +16,9 @@ def doi_orcids_pickle(authors_csv, pickle_file, limit=None):
         orcid_dois = {}
         count = 0
         for row in csv.DictReader(csv_input):
-            count += 1
             orcid = row["orcidid"].replace("https://orcid.org/", "")
             if orcid:
+                count += 1
                 orcid_dois[orcid] = list(dois_from_orcid(orcid))
                 if limit is not None and count > limit:
                     break
