@@ -5,8 +5,10 @@ from airflow.models import Variable
 from airflow.decorators import dag, task
 
 from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
-from rialto_airflow.harvest.sul_pub import sul_pub_csv
 from rialto_airflow.harvest import dimensions, openalex
+from rialto_airflow.harvest.sul_pub import sul_pub_csv
+from rialto_airflow.harvest.doi_set import create_doi_set
+
 
 data_dir = Variable.get("data_dir")
 sul_pub_host = Variable.get("sul_pub_host")
@@ -73,7 +75,7 @@ def harvest():
         Extract a unique list of DOIs from the dimensions doi-orcid dict,
         the openalex doi-orcid dict, and the SUL-Pub publications.
         """
-        return True
+        return create_doi_set(dimensions, openalex, sul_pub)
 
     @task()
     def dimensions_harvest_doi(dois):
@@ -127,7 +129,7 @@ def harvest():
 
     openalex_orcid = openalex_harvest_orcid(authors_csv, snapshot_dir)
 
-    dois = doi_set(sul_pub, dimensions_orcid, openalex_orcid)
+    dois = doi_set(dimensions_orcid, openalex_orcid, sul_pub)
 
     dimensions_doi = dimensions_harvest_doi(dois)
 

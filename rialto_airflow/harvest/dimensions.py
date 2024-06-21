@@ -44,8 +44,7 @@ def dois_from_orcid(orcid):
     if len(result["publications"]) == 1000:
         logging.warning("Truncated results for ORCID %s", orcid)
     for pub in result["publications"]:
-        doi = pub.get("doi")
-        if doi:
+        if pub.get("doi"):
             yield pub["doi"]
 
 
