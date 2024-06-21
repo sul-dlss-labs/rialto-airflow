@@ -12,7 +12,7 @@ def create_doi_set(dimensions: str, openalex: str, sul_pub_csv: str) -> list:
     return unique_dois
 
 
-def dois_from_pickle(pickle_file: str) -> dict:
+def dois_from_pickle(pickle_file: str) -> list:
     """Load a pickled dictionary of DOIs and ORCIDs from file."""
     with open(pickle_file, "rb") as handle:
         data = pickle.load(handle)
