@@ -66,7 +66,7 @@ def publications_csv(dois, csv_file) -> None:
             writer.writerow(pub)
 
 
-def publications_from_dois(dois: list, batch_size=200) -> str:
+def publications_from_dois(dois: list, batch_size=200):
     """
     Get the publications metadata for the provided list of DOIs and write as a
     CSV file.
