@@ -10,7 +10,7 @@ def create_doi_set(dimensions: str, openalex: str, sul_pub_csv: str) -> list:
     sul_pub_dois = get_sul_pub_dois(sul_pub_csv)
     unique_dois = list(set(dimensions_dois + openalex_dois + sul_pub_dois))
     logging.info(f"found {len(unique_dois)}")
-    
+
     return unique_dois
 
 
