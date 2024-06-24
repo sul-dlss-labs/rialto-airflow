@@ -11,12 +11,12 @@ def test_dois_from_orcid():
     assert len(dois) >= 54
 
 
-def test_works_from_author_id():
+def test_dois_from_orcid_paging():
     # the dimensions api returns 200 publications at a time, so ensure that paging is working
     # for Akihisa Inoue who has a lot of publications (> 4,000)
-    works = list(openalex.works_from_author_id("a5008412118", limit=600))
-    assert len(works) == 600, "paging is limiting to 600 works"
-    assert len(set([work["id"] for work in works])) == 600, "the works are unique"
+    dois = list(openalex.dois_from_orcid("0000-0001-6009-8669", limit=600))
+    assert len(dois) == 600, "paging is limiting to 600 works"
+    assert len(set(dois)) == 600, "the dois are unique"
 
 
 def test_doi_orcids_pickle(tmp_path):
