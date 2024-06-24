@@ -87,11 +87,13 @@ def harvest():
         return str(csv_file)
 
     @task()
-    def openalex_harvest_pubs(dois):
+    def openalex_harvest_pubs(dois, snapshot_dir):
         """
         Harvest publication metadata from OpenAlex using the dois from doi_set.
         """
-        return True
+        csv_file = Path(snapshot_dir) / "openalex-pubs.csv"
+        openalex.publications_csv(dois, csv_file)
+        return str(csv_file)
 
     @task()
     def merge_publications(sul_pub, openalex, dimensions):
@@ -135,7 +137,7 @@ def harvest():
 
     dimensions_pubs = dimensions_harvest_pubs(dois, snapshot_dir)
 
-    openalex_pubs = openalex_harvest_pubs(dois)
+    openalex_pubs = openalex_harvest_pubs(dois, snapshot_dir)
 
     pubs = merge_publications(sul_pub, dimensions_pubs, openalex_pubs)
 

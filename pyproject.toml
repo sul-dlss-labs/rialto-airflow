@@ -9,7 +9,9 @@ dependencies = [
     "requests",
     "python-dotenv",
     "dimcli",
-    "tenacity"
+    "tenacity",
+    "pyalex",
+    "more-itertools"
 ]
 
 [tool.pytest.ini_options]
