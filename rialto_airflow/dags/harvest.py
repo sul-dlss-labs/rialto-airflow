@@ -78,11 +78,13 @@ def harvest():
         return create_doi_set(dimensions, openalex, sul_pub)
 
     @task()
-    def dimensions_harvest_pubs(dois):
+    def dimensions_harvest_pubs(dois, snapshot_dir):
         """
         Harvest publication metadata from Dimensions using the dois from doi_set.
         """
-        return True
+        csv_file = Path(snapshot_dir) / "dimensions-pubs.csv"
+        dimensions.publications_csv(dois, csv_file)
+        return str(csv_file)
 
     @task()
     def openalex_harvest_pubs(dois):
@@ -131,7 +133,7 @@ def harvest():
 
     dois = doi_set(dimensions_dois, openalex_dois, sul_pub)
 
-    dimensions_pubs = dimensions_harvest_pubs(dois)
+    dimensions_pubs = dimensions_harvest_pubs(dois, snapshot_dir)
 
     openalex_pubs = openalex_harvest_pubs(dois)
 

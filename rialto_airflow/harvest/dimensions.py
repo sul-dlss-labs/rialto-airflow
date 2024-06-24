@@ -1,29 +1,20 @@
-import os
-import dimcli
-import dotenv
+import csv
 import logging
-import pandas as pd
+import os
 import pickle
 import time
-import re
+from functools import cache
+
+import dimcli
+import pandas as pd
 import requests
+from more_itertools import batched
 
 from rialto_airflow.utils import invert_dict
-
-dotenv.load_dotenv()
-
-dimcli.login(
-    os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_USER"),
-    os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_PASS"),
-    "https://app.dimensions.ai",
-)
-
-dsl = dimcli.Dsl(verbose=False)
 
 
 def dois_from_orcid(orcid):
     logging.info(f"looking up dois for orcid {orcid}")
-    orcid = re.sub(r"^https://orcid.org/", "", orcid)
     q = """
         search publications where researchers.orcid_id = "{}"
         return publications [doi]
@@ -35,9 +26,9 @@ def dois_from_orcid(orcid):
     while try_count < 20:
         try_count += 1
         try:
-            result = dsl.query(q)
+            result = dsl().query(q)
             break
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.RequestException as e:
             logging.error("Dimensions API call %s resulted in error: %s", try_count, e)
             time.sleep(try_count * 10)
 
@@ -48,8 +39,12 @@ def dois_from_orcid(orcid):
             yield pub["doi"]
 
 
-def doi_orcids_pickle(org_data_file, pickle_file, limit=None):
-    df = pd.read_csv(org_data_file)
+def doi_orcids_pickle(authors_csv, pickle_file, limit=None) -> None:
+    """
+    Read the ORCIDs in the provided rialto-orgs authors.csv file and write a
+    dictionary mapping of DOI -> [ORCID] to a pickle file at the provided path.
+    """
+    df = pd.read_csv(authors_csv)
     orcids = df[df["orcidid"].notna()]["orcidid"]
     orcid_dois = {}
 
@@ -60,3 +55,70 @@ def doi_orcids_pickle(org_data_file, pickle_file, limit=None):
 
     with open(pickle_file, "wb") as handle:
         pickle.dump(invert_dict(orcid_dois), handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def publications_csv(dois, csv_file) -> None:
+    with open(csv_file, "w") as output:
+        writer = csv.DictWriter(output, publication_fields())
+        writer.writeheader()
+        for pub in publications_from_dois(dois):
+            logging.info(f"writing metadata for {pub.get('doi')}")
+            writer.writerow(pub)
+
+
+def publications_from_dois(dois: list, batch_size=200) -> str:
+    """
+    Get the publications metadata for the provided list of DOIs and write as a
+    CSV file.
+    """
+    fields = " + ".join(publication_fields())
+    for doi_batch in batched(dois, batch_size):
+        doi_list = ",".join(['"{}"'.format(doi) for doi in doi_batch])
+
+        q = f"""
+            search publications where doi in [{doi_list}]
+            return publications [{fields}]
+            limit 1000
+            """
+
+        result = dsl().query(q)
+
+        for pub in result["publications"]:
+            yield normalize_publication(pub)
+
+
+@cache
+def publication_fields():
+    """
+    Get a list of all possible fields for publications.
+    """
+    result = dsl().query("describe schema")
+    return list(result.data["sources"]["publications"]["fields"].keys())
+
+
+def normalize_publication(pub) -> dict:
+    for field in publication_fields():
+        if field not in pub:
+            pub[field] = None
+
+    return pub
+
+
+@cache  # TODO: maybe the login should expire after some time?
+def login():
+    """
+    Login to Dimensions API and cache the result.
+    """
+    dimcli.login(
+        os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_USER"),
+        os.environ.get("AIRFLOW_VAR_DIMENSIONS_API_PASS"),
+        "https://app.dimensions.ai",
+    )
+
+
+def dsl():
+    """
+    Get the Dimensions DSL for querying.
+    """
+    login()
+    return dimcli.Dsl(verbose=False)
