@@ -4,6 +4,8 @@ import pickle
 import time
 
 import requests
+from requests.exceptions import SSLError
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from rialto_airflow.utils import invert_dict
 
@@ -27,6 +29,11 @@ def doi_orcids_pickle(authors_csv, pickle_file, limit=None):
         pickle.dump(invert_dict(orcid_dois), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
+@retry(
+    wait=wait_random(1, 5),
+    stop=stop_after_delay(60),
+    retry=retry_if_exception_type(SSLError),
+)
 def dois_from_orcid(orcid: str):
     """
     Pass in the ORCID ID and get back an iterator of DOIs for publications authored by that person.
@@ -79,5 +86,7 @@ def works_from_author_id(author_id, limit=None):
                     else:
                         yield result
         else:
-            logging.error(f"encountered non-200 response: {url} {params}")
+            logging.error(
+                f"encountered HTTP {resp.status_code} response from {url} {params}: {resp.text}"
+            )
             has_more = False

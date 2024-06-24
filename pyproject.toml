@@ -8,7 +8,8 @@ dependencies = [
     "pandas",
     "requests",
     "python-dotenv",
-    "dimcli"
+    "dimcli",
+    "tenacity"
 ]
 
 [tool.pytest.ini_options]
