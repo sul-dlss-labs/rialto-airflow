@@ -4,7 +4,7 @@ import pickle
 import time
 
 import requests
-from requests.exceptions import SSLError
+from ssl import SSLEOFError
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from rialto_airflow.utils import invert_dict
@@ -32,7 +32,7 @@ def doi_orcids_pickle(authors_csv, pickle_file, limit=None):
 @retry(
     wait=wait_random(1, 5),
     stop=stop_after_delay(60),
-    retry=retry_if_exception_type(SSLError),
+    retry=retry_if_exception_type(SSLEOFError),
 )
 def dois_from_orcid(orcid: str):
     """
@@ -70,6 +70,8 @@ def works_from_author_id(author_id, limit=None):
     while has_more:
         page += 1
         params["page"] = page
+
+        logging.info(f"fetching works for {author_id} page={page}")
         resp = requests.get(url, params)
 
         if resp.status_code == 200:
