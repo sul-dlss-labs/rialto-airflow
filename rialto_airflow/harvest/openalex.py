@@ -1,9 +1,9 @@
 import csv
 import logging
+import os
 import pickle
 import time
 
-from airflow.models import Variable
 from pyalex import config, Works
 import requests
 from ssl import SSLEOFError
@@ -12,7 +12,7 @@ from more_itertools import batched
 
 from rialto_airflow.utils import invert_dict
 
-config.email = Variable.get("openalex_email")
+config.email = os.environ.get("AIRFLOW_VAR_OPENALEX_EMAIL")
 config.max_retries = 0
 config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
