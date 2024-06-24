@@ -13,7 +13,7 @@ from more_itertools import batched
 from rialto_airflow.utils import invert_dict
 
 config.email = os.environ.get("AIRFLOW_VAR_OPENALEX_EMAIL")
-config.max_retries = 0
+config.max_retries = 5
 config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
 
