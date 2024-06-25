@@ -4,7 +4,7 @@ import logging
 import requests
 
 
-sul_pub_fields = [
+SUL_PUB_FIELDS = [
     "authorship",
     "title",
     "abstract",
@@ -35,7 +35,7 @@ sul_pub_fields = [
 
 def sul_pub_csv(csv_file, host, key, since=None, limit=None):
     with open(csv_file, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=sul_pub_fields)
+        writer = csv.DictWriter(csvfile, fieldnames=SUL_PUB_FIELDS)
         writer.writeheader()
         for row in harvest(host, key, since, limit):
             writer.writerow(row)
@@ -73,7 +73,7 @@ def harvest(host, key, since, limit):
                 more = False
                 break
 
-            pub = {key: record[key] for key in record if key in sul_pub_fields}
+            pub = {key: record[key] for key in record if key in SUL_PUB_FIELDS}
             pub["doi"] = extract_doi(record)
 
             yield pub
@@ -82,5 +82,6 @@ def harvest(host, key, since, limit):
 def extract_doi(record):
     for id in record.get("identifier"):
         if id["type"] == "doi":
-            return id["id"]
+            doi_id = id["id"].replace("https://doi.org/", "")
+            return doi_id
     return None

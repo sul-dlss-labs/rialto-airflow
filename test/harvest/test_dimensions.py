@@ -22,6 +22,7 @@ def test_doi_orcids_dict(tmpdir):
 
     assert len(doi_orcids) > 0
     assert doi_orcids["10.1109/lra.2018.2890209"] == ["0000-0002-0770-2940"]
+    assert "https://doi.org/" not in list(doi_orcids.keys())[0], "doi is an ID"
 
 
 def test_publications_from_dois():
