@@ -36,7 +36,8 @@ def dois_from_orcid(orcid):
         logging.warning("Truncated results for ORCID %s", orcid)
     for pub in result["publications"]:
         if pub.get("doi"):
-            yield pub["doi"]
+            doi_id = pub["doi"].replace("https://doi.org/", "")
+            yield doi_id
 
 
 def doi_orcids_pickle(authors_csv, pickle_file, limit=None) -> None:

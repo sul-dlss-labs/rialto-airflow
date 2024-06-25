@@ -63,8 +63,7 @@ def dois_from_orcid(orcid: str, limit=None):
                 work_count += 1
                 if limit is not None and work_count > limit:
                     return
-                else:
-                    yield pub["doi"]
+                yield pub.get("doi").replace("https://doi.org/", "")
 
 
 def publications_csv(dois: list, csv_file: str) -> None:

@@ -30,6 +30,7 @@ def test_doi_orcids_pickle(tmp_path):
     assert len(mapping) > 0
 
     doi = list(mapping.keys())[0]
+    assert "https://doi.org/" not in doi, "doi is an ID"
     assert "/" in doi
 
     orcids = mapping[doi]
