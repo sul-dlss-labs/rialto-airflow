@@ -83,12 +83,13 @@ def publications_from_dois(dois: list, batch_size=75):
     Look up works by DOI in batches that fit within OpenAlex request size limits
     """
     for doi_batch in batched(dois, batch_size):
-        doi_list = "|".join([doi for doi in doi_batch])
-
-        result = Works().filter(doi=doi_list).get()
+        # TODO: do we need this to stay within 100,000 requests / day API quota?
         time.sleep(1)
-        for pub in result:
-            yield normalize_publication(pub)
+
+        doi_list = "|".join([doi for doi in doi_batch])
+        for page in Works().filter(doi=doi_list).paginate(per_page=200):
+            for pub in page:
+                yield normalize_publication(pub)
 
 
 def normalize_publication(pub) -> dict:
