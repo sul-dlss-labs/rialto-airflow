@@ -81,6 +81,7 @@ x-airflow-common:
     AIRFLOW_VAR_DEV_LIMIT: ${AIRFLOW_VAR_DEV_LIMIT}
     AIRFLOW_VAR_DATA_DIR: /opt/airflow/data
     AIRFLOW_VAR_OPENALEX_EMAIL: ${AIRFLOW_VAR_OPENALEX_EMAIL}
+    AIRFLOW_VAR_OPENALEX_MAX_RETRIES: ${AIRFLOW_VAR_OPENALEX_MAX_RETRIES}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/rialto_airflow:/opt/airflow/rialto_airflow
     # TODO: we may want to put logs and data outside of the project directory so

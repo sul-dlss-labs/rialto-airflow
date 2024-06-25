@@ -13,7 +13,7 @@ from more_itertools import batched
 from rialto_airflow.utils import invert_dict
 
 config.email = os.environ.get("AIRFLOW_VAR_OPENALEX_EMAIL")
-config.max_retries = 5
+config.max_retries = os.environ.get("AIRFLOW_VAR_OPENALEX_MAX_RETRIES", 5)
 config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
 
@@ -115,7 +115,7 @@ def publications_csv(dois: list, csv_file: str) -> None:
 
 def publications_from_dois(dois: list, batch_size=75):
     """
-    Look up works by DOI in batches that fit within OpenAlex request size limits
+    Look up works by DOI in batches that fit within request length limit of 4096
     """
     for doi_batch in batched(dois, batch_size):
         doi_list = "|".join([doi for doi in doi_batch])
