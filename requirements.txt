@@ -107,8 +107,6 @@ sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
 stack-data==0.6.3
     # via ipython
-tenacity==8.4.1
-    # via rialto-airflow (pyproject.toml)
 tqdm==4.66.4
     # via dimcli
 traitlets==5.14.3
