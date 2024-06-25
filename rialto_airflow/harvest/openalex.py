@@ -66,21 +66,6 @@ def dois_from_orcid(orcid: str, limit=None):
                 yield pub.get("doi").replace("https://doi.org/", "")
 
 
-def works_from_author_id(author_id, limit=None):
-    """
-    Pass in the OpenAlex Author ID and get back an iterator of works.
-    """
-    work_count = 0
-    for page in Works().filter(author={"id": author_id}).paginate(per_page=200):
-        for pub in page:
-            if pub.get("doi"):
-                work_count += 1
-                if limit is not None and work_count > limit:
-                    return
-                else:
-                    yield pub["doi"]
-
-
 def publications_csv(dois: list, csv_file: str) -> None:
     """
     Get publication records for a list of DOIs and create a CSV file.
