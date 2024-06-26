@@ -15,7 +15,7 @@ sul_pub_host = Variable.get("sul_pub_host")
 sul_pub_key = Variable.get("sul_pub_key")
 
 # to artificially limit the API activity in development
-dev_limit = Variable.get("dev_limit")
+dev_limit = Variable.get("dev_limit", default_var=None)
 if dev_limit is not None:
     dev_limit = int(dev_limit)
 
