@@ -2,6 +2,8 @@ import pickle
 import re
 
 import pandas
+import pyalex
+import pytest
 
 from rialto_airflow.harvest import openalex
 
@@ -75,3 +77,24 @@ def test_publications_csv(tmp_path):
             "https://doi.org/10.1145/3442188.3445922",
         ]
     )
+
+
+def test_pyalex_urlencoding():
+    # this might start working if https://github.com/J535D165/pyalex/issues/41 is fixed
+    with pytest.raises(pyalex.api.QueryError):
+        pyalex.Works().filter(doi="10.1207/s15327809jls0703&4_2").count() == 1
+
+    assert (
+        pyalex.Works().filter(doi="10.1207/s15327809jls0703%264_2").count() == 1
+    ), "url encoding the & works with OpenAlex API"
+
+    assert (
+        len(
+            list(
+                openalex.publications_from_dois(
+                    ["10.1207/s15327809jls0703&4_2", "10.1145/3442188.3445922"]
+                )
+            )
+        )
+        == 2
+    ), "we handle url URL encoding DOIs until pyalex does"
