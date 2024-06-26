@@ -9,6 +9,7 @@ dependencies = [
     "requests",
     "python-dotenv",
     "dimcli",
+    "polars",
     "pyalex",
     "more-itertools"
 ]
