@@ -3,9 +3,10 @@ import logging
 import os
 import pickle
 import time
+from urllib.parse import quote
 
-from pyalex import config, Works, Authors
 from more_itertools import batched
+from pyalex import Authors, Works, config
 
 from rialto_airflow.utils import invert_dict
 
@@ -85,7 +86,7 @@ def publications_from_dois(dois: list, batch_size=75):
         # TODO: do we need this to stay within 100,000 requests / day API quota?
         time.sleep(1)
 
-        doi_list = "|".join([doi for doi in doi_batch])
+        doi_list = quote("|".join([doi for doi in doi_batch]))
         for page in Works().filter(doi=doi_list).paginate(per_page=200):
             for pub in page:
                 yield normalize_publication(pub)
