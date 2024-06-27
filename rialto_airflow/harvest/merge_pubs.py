@@ -86,5 +86,6 @@ def sulpub_df(sul_pub):
     """
     df = pl.scan_csv(sul_pub)
     df = df.drop_nulls("doi")
+    df = df.with_columns(pl.col("doi").str.replace("https://doi.org/", ""))
     df = df.rename(lambda column_name: "sul_pub_" + column_name)
     return df

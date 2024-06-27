@@ -100,9 +100,7 @@ def harvest():
         """
         Merge the OpenAlex, Dimensions and sul_pub data.
         """
-        output = (
-            Path(snapshot_dir) / "publications.parquet"
-        )  # TODO: update file extension to actual format used
+        output = Path(snapshot_dir) / "publications.parquet"
         merge_pubs.merge(sul_pub, openalex_pubs, dimensions_pubs, output)
         return str(output)
 
