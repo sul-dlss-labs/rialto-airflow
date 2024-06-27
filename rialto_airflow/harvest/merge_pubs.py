@@ -5,41 +5,9 @@ def merge(sul_pub, openalex_pubs, dimensions_pubs, output):
     """
     Merge publication data from all sources, joining on DOI
     """
-    # Using lazy API to avoid loading all data into memory
-    # Polars is inferring volume is an integer, but it should be a string e.g. "97-B"
-    dimensions_df = pl.scan_csv(dimensions_pubs, schema_overrides={"volume": pl.String})
-    dimensions_df = dimensions_df.select(
-        pl.col(
-            "authors",
-            "document_type",
-            "doi",
-            "funders",
-            "funding_section",
-            "open_access",
-            "publisher",
-            "research_orgs",
-            "researchers",
-            "title",
-            "type",
-            "year",
-        )
-    )
-    dimensions_df = dimensions_df.rename(lambda column_name: "dim_" + column_name)
-
-    # Make an openalex df and rename columns
-    openalex_df = pl.scan_csv(openalex_pubs)
-    openalex_df = openalex_df.select(
-        pl.col("doi").str.replace("https://doi.org/", ""),
-        pl.col(
-            "apc_paid", "authorships", "grants", "publication_year", "title", "type"
-        ),
-    )
-    openalex_df = openalex_df.rename(lambda column_name: "openalex_" + column_name)
-
-    # Make a sulpub df and rename columns
-    sul_pub_df = pl.scan_csv(sul_pub)
-    sul_pub_df = sul_pub_df.drop_nulls("doi")
-    sul_pub_df = sul_pub_df.rename(lambda column_name: "sul_pub_" + column_name)
+    dimensions_df = dimensions_pubs_df(dimensions_pubs)
+    openalex_df = openalex_pubs_df(openalex_pubs)
+    sul_pub_df = sulpub_df(sul_pub)
 
     # Join dataframes on their respective doi columns
     dim_openalex_df = dimensions_df.join(
@@ -69,3 +37,54 @@ def merge(sul_pub, openalex_pubs, dimensions_pubs, output):
 
     # Write output to Parquet
     merged_df.collect().write_parquet(output)
+
+
+def dimensions_pubs_df(dimensions_pubs):
+    """
+    # Create a LazyFrame of dimension pubs to avoid loading all data into memory
+    """
+    # Polars is inferring volume is an integer, but it should be a string e.g. "97-B"
+    df = pl.scan_csv(dimensions_pubs, schema_overrides={"volume": pl.String})
+    df = df.select(
+        pl.col(
+            "authors",
+            "document_type",
+            "doi",
+            "funders",
+            "funding_section",
+            "open_access",
+            "publisher",
+            "research_orgs",
+            "researchers",
+            "title",
+            "type",
+            "year",
+        )
+    )
+    df = df.rename(lambda column_name: "dim_" + column_name)
+    return df
+
+
+def openalex_pubs_df(openalex_pubs):
+    """
+    Create an openalex pubs LazyFrame and rename columns
+    """
+    df = pl.scan_csv(openalex_pubs)
+    df = df.select(
+        pl.col("doi").str.replace("https://doi.org/", ""),
+        pl.col(
+            "apc_paid", "authorships", "grants", "publication_year", "title", "type"
+        ),
+    )
+    df = df.rename(lambda column_name: "openalex_" + column_name)
+    return df
+
+
+def sulpub_df(sul_pub):
+    """
+    Create a sulpub LazyFrame and rename columns
+    """
+    df = pl.scan_csv(sul_pub)
+    df = df.drop_nulls("doi")
+    df = df.rename(lambda column_name: "sul_pub_" + column_name)
+    return df
