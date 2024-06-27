@@ -56,6 +56,8 @@ parso==0.8.4
     # via jedi
 pexpect==4.9.0
     # via ipython
+polars==0.20.31
+    # via rialto-airflow (pyproject.toml)
 prompt-toolkit==3.0.47
     # via
     #   dimcli

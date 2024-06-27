@@ -5,7 +5,7 @@ from airflow.models import Variable
 from airflow.decorators import dag, task
 
 from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
-from rialto_airflow.harvest import dimensions, openalex
+from rialto_airflow.harvest import dimensions, openalex, merge_pubs
 from rialto_airflow.harvest.sul_pub import sul_pub_csv
 from rialto_airflow.harvest.doi_set import create_doi_set
 
@@ -96,11 +96,15 @@ def harvest():
         return str(csv_file)
 
     @task()
-    def merge_publications(sul_pub, openalex, dimensions):
+    def merge_publications(sul_pub, openalex_pubs, dimensions_pubs, snapshot_dir):
         """
         Merge the OpenAlex, Dimensions and sul_pub data.
         """
-        return True
+        output = (
+            Path(snapshot_dir) / "publications.parquet"
+        )  # TODO: update file extension to actual format used
+        merge_pubs.merge(sul_pub, openalex_pubs, dimensions_pubs, output)
+        return str(output)
 
     @task()
     def join_authors(pubs, authors_csv):
@@ -139,7 +143,7 @@ def harvest():
 
     openalex_pubs = openalex_harvest_pubs(dois, snapshot_dir)
 
-    pubs = merge_publications(sul_pub, dimensions_pubs, openalex_pubs)
+    pubs = merge_publications(sul_pub, openalex_pubs, dimensions_pubs, snapshot_dir)
 
     pubs_authors = join_authors(pubs, authors_csv)
 
