@@ -81,7 +81,6 @@ def harvest(host, key, since, limit):
 
 def extract_doi(record):
     for id in record.get("identifier"):
-        if id["type"] == "doi":
-            doi_id = id["id"].replace("https://doi.org/", "")
-            return doi_id
+        if id.get("type") == "doi" and "id" in id:
+            return id["id"].replace("https://doi.org/", "")
     return None
