@@ -55,13 +55,13 @@ def test_publications_from_dois():
     assert len(pubs[1].keys()) == 51, "second publication has 51 columns"
 
 
-def test_publications_csv(tmp_path):
-    pubs_csv = tmp_path / "openalex-pubs.csv"
-    openalex.publications_csv(
-        ["10.48550/arxiv.1706.03762", "10.1145/3442188.3445922"], pubs_csv
+def test_publications_jsonl(tmp_path):
+    pubs_jsonl = tmp_path / "openalex-pubs.jsonl"
+    openalex.publications_jsonl(
+        ["10.48550/arxiv.1706.03762", "10.1145/3442188.3445922"], pubs_jsonl
     )
 
-    df = pandas.read_csv(pubs_csv)
+    df = pandas.read_json(pubs_jsonl, orient="records", lines=True)
 
     assert len(df) == 2
 

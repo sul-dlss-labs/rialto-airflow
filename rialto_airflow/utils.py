@@ -1,4 +1,5 @@
 import csv
+import json
 import datetime
 from pathlib import Path
 
@@ -54,3 +55,12 @@ def invert_dict(dict):
         inverted_dict[i] = [k for k, v in dict.items() if i in v]
 
     return inverted_dict
+
+
+def write_jsonl(filename, records):
+    """
+    Write a list of dictionaries as line-oriented JSON.
+    """
+    with open(filename, "w") as output:
+        for record in records:
+            output.write(json.dumps(record) + "\n")

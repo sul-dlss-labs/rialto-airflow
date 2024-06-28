@@ -5,8 +5,7 @@ from airflow.models import Variable
 from airflow.decorators import dag, task
 
 from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
-from rialto_airflow.harvest import dimensions, openalex, merge_pubs
-from rialto_airflow.harvest.sul_pub import sul_pub_csv
+from rialto_airflow.harvest import dimensions, openalex, merge_pubs, sul_pub
 from rialto_airflow.harvest.doi_set import create_doi_set
 
 
@@ -64,10 +63,12 @@ def harvest():
         """
         Harvest data from SUL-Pub.
         """
-        csv_file = Path(snapshot_dir) / "sulpub.csv"
-        sul_pub_csv(csv_file, sul_pub_host, sul_pub_key, limit=dev_limit)
+        jsonl_file = Path(snapshot_dir) / "sulpub.jsonl"
+        sul_pub.publications_jsonl(
+            jsonl_file, sul_pub_host, sul_pub_key, limit=dev_limit
+        )
 
-        return str(csv_file)
+        return str(jsonl_file)
 
     @task()
     def doi_set(dimensions, openalex, sul_pub):
@@ -82,18 +83,18 @@ def harvest():
         """
         Harvest publication metadata from Dimensions using the dois from doi_set.
         """
-        csv_file = Path(snapshot_dir) / "dimensions-pubs.csv"
-        dimensions.publications_csv(dois, csv_file)
-        return str(csv_file)
+        jsonl_file = Path(snapshot_dir) / "dimensions-pubs.jsonl"
+        dimensions.publications_jsonl(dois, jsonl_file)
+        return str(jsonl_file)
 
     @task()
     def openalex_harvest_pubs(dois, snapshot_dir):
         """
         Harvest publication metadata from OpenAlex using the dois from doi_set.
         """
-        csv_file = Path(snapshot_dir) / "openalex-pubs.csv"
-        openalex.publications_csv(dois, csv_file)
-        return str(csv_file)
+        jsonl_file = Path(snapshot_dir) / "openalex-pubs.jsonl"
+        openalex.publications_jsonl(dois, jsonl_file)
+        return str(jsonl_file)
 
     @task()
     def merge_publications(sul_pub, openalex_pubs, dimensions_pubs, snapshot_dir):
@@ -129,19 +130,21 @@ def harvest():
 
     authors_csv = find_authors_csv()
 
-    sul_pub = sul_pub_harvest(snapshot_dir)
+    sul_pub_pubs = sul_pub_harvest(snapshot_dir)
 
     dimensions_dois = dimensions_harvest_dois(authors_csv, snapshot_dir)
 
     openalex_dois = openalex_harvest_dois(authors_csv, snapshot_dir)
 
-    dois = doi_set(dimensions_dois, openalex_dois, sul_pub)
+    dois = doi_set(dimensions_dois, openalex_dois, sul_pub_pubs)
 
     dimensions_pubs = dimensions_harvest_pubs(dois, snapshot_dir)
 
     openalex_pubs = openalex_harvest_pubs(dois, snapshot_dir)
 
-    pubs = merge_publications(sul_pub, openalex_pubs, dimensions_pubs, snapshot_dir)
+    pubs = merge_publications(
+        sul_pub_pubs, openalex_pubs, dimensions_pubs, snapshot_dir
+    )
 
     pubs_authors = join_authors(pubs, authors_csv)
 

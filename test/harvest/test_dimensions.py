@@ -43,13 +43,13 @@ def test_publication_fields():
     assert "title" in fields
 
 
-def test_publications_csv(tmpdir):
-    pubs_csv = tmpdir / "dimensions-pubs.csv"
-    dimensions.publications_csv(
-        ["10.48550/arxiv.1706.03762", "10.1145/3442188.3445922"], pubs_csv
+def test_publications_jsonl(tmpdir):
+    pubs_jsonl = tmpdir / "dimensions-pubs.jsonl"
+    dimensions.publications_jsonl(
+        ["10.48550/arxiv.1706.03762", "10.1145/3442188.3445922"], pubs_jsonl
     )
 
-    df = pandas.read_csv(pubs_csv)
+    df = pandas.read_json(pubs_jsonl, orient="records", lines=True)
 
     assert len(df) == 2
 

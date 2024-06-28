@@ -44,7 +44,7 @@ def dimensions_pubs_df(dimensions_pubs):
     # Create a LazyFrame of dimension pubs to avoid loading all data into memory
     """
     # Polars is inferring volume is an integer, but it should be a string e.g. "97-B"
-    df = pl.scan_csv(dimensions_pubs, schema_overrides={"volume": pl.String})
+    df = pl.scan_ndjson(dimensions_pubs)
     df = df.select(
         pl.col(
             "authors",
@@ -69,7 +69,7 @@ def openalex_pubs_df(openalex_pubs):
     """
     Create an openalex pubs LazyFrame and rename columns
     """
-    df = pl.scan_csv(openalex_pubs)
+    df = pl.scan_ndjson(openalex_pubs)
     df = df.select(
         pl.col("doi").str.replace("https://doi.org/", ""),
         pl.col(
@@ -84,7 +84,7 @@ def sulpub_df(sul_pub):
     """
     Create a sulpub LazyFrame and rename columns
     """
-    df = pl.scan_csv(sul_pub)
+    df = pl.scan_ndjson(sul_pub)
     df = df.drop_nulls("doi")
     df = df.with_columns(pl.col("doi").str.replace("https://doi.org/", ""))
     df = df.rename(lambda column_name: "sul_pub_" + column_name)

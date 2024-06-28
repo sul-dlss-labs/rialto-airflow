@@ -1,44 +1,15 @@
 import csv
+import json
 import logging
 
 import requests
 
 
-SUL_PUB_FIELDS = [
-    "authorship",
-    "title",
-    "abstract",
-    "author",
-    "year",
-    "type",
-    "mesh_headings",
-    "publisher",
-    "journal",
-    "provenance",
-    "doi",
-    "issn",
-    "sulpubid",
-    "sw_id",
-    "pmid",
-    "identifier",
-    "last_updated",
-    "pages",
-    "date",
-    "country",
-    "booktitle",
-    "edition",
-    "series",
-    "chapter",
-    "editor",
-]
-
-
-def sul_pub_csv(csv_file, host, key, since=None, limit=None):
-    with open(csv_file, "w") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=SUL_PUB_FIELDS)
-        writer.writeheader()
-        for row in harvest(host, key, since, limit):
-            writer.writerow(row)
+def publications_jsonl(jsonl_file, host, key, since=None, limit=None):
+    with open(jsonl_file, "w") as output:
+        for record in harvest(host, key, since, limit):
+            json.dump(record, output, ensure_ascii=False)
+            output.write("\n")
 
 
 def harvest(host, key, since, limit):
@@ -73,10 +44,9 @@ def harvest(host, key, since, limit):
                 more = False
                 break
 
-            pub = {key: record[key] for key in record if key in SUL_PUB_FIELDS}
-            pub["doi"] = extract_doi(record)
+            record["doi"] = extract_doi(record)
 
-            yield pub
+            yield record
 
 
 def extract_doi(record):

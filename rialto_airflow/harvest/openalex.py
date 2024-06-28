@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 import os
 import pickle
@@ -67,15 +68,14 @@ def dois_from_orcid(orcid: str, limit=None):
                 yield pub.get("doi").replace("https://doi.org/", "")
 
 
-def publications_csv(dois: list, csv_file: str) -> None:
+def publications_jsonl(dois: list, jsonl_file: str) -> None:
     """
-    Get publication records for a list of DOIs and create a CSV file.
+    Get publication records for a list of DOIs and create a JSONL file.
     """
-    with open(csv_file, "w") as output:
-        writer = csv.DictWriter(output, fieldnames=FIELDS)
-        writer.writeheader()
-        for pub in publications_from_dois(dois):
-            writer.writerow(pub)
+    with open(jsonl_file, "w") as output:
+        for record in publications_from_dois(dois):
+            logging.info(f"writing metadata for {record.get('doi')}")
+            output.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def publications_from_dois(dois: list, batch_size=75):

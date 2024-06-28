@@ -1,9 +1,9 @@
-import csv
 import pickle
 
 import pytest
 
 from rialto_airflow.harvest.doi_set import create_doi_set
+from rialto_airflow.utils import write_jsonl
 
 
 @pytest.fixture
@@ -33,18 +33,24 @@ def openalex_pickle(tmp_path):
 
 
 @pytest.fixture
-def sul_pub_csv(tmp_path):
-    fixture_file = tmp_path / "sul_pub.csv"
-    with open(fixture_file, "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["sunetid", "title", "doi"])
-        writer.writerow(["author1", "A Publication", "10.0000/aaaa"])
-        writer.writerow(["author2", "A Research Article", "10.0000/1234"])
+def sul_pub_jsonl(tmp_path):
+    fixture_file = tmp_path / "sul_pub.jsonl"
+    write_jsonl(
+        fixture_file,
+        [
+            {"sunetid": "author1", "title": "A Publication", "doi": "10.0000/aaaa"},
+            {
+                "sunetid": "author2",
+                "title": "A Research Article",
+                "doi": "10.0000/1234",
+            },
+        ],
+    )
     return fixture_file
 
 
-def test_doi_set(dimensions_pickle, openalex_pickle, sul_pub_csv):
-    dois = create_doi_set(dimensions_pickle, openalex_pickle, sul_pub_csv)
+def test_doi_set(dimensions_pickle, openalex_pickle, sul_pub_jsonl):
+    dois = create_doi_set(dimensions_pickle, openalex_pickle, sul_pub_jsonl)
     assert len(dois) == 4
     assert set(dois) == set(
         ["10.0000/1234", "10.0000/aaaa", "10.0000/cccc", "10.0000/zzzz"]

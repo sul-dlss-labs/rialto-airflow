@@ -1,4 +1,4 @@
-import csv
+import json
 import logging
 import os
 import pickle
@@ -58,13 +58,11 @@ def doi_orcids_pickle(authors_csv, pickle_file, limit=None) -> None:
         pickle.dump(invert_dict(orcid_dois), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def publications_csv(dois, csv_file) -> None:
-    with open(csv_file, "w") as output:
-        writer = csv.DictWriter(output, publication_fields())
-        writer.writeheader()
-        for pub in publications_from_dois(dois):
-            logging.info(f"writing metadata for {pub.get('doi')}")
-            writer.writerow(pub)
+def publications_jsonl(dois, jsonl_file) -> None:
+    with open(jsonl_file, "w") as output:
+        for record in publications_from_dois(dois):
+            logging.info(f"writing metadata for {record.get('doi')}")
+            output.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def publications_from_dois(dois: list, batch_size=200):

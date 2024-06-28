@@ -4,7 +4,7 @@ import dotenv
 import pandas
 import pytest
 
-from rialto_airflow.harvest.sul_pub import sul_pub_csv
+from rialto_airflow.harvest import sul_pub
 
 dotenv.load_dotenv()
 
@@ -15,12 +15,12 @@ no_auth = not (sul_pub_host and sul_pub_key)
 
 
 @pytest.mark.skipif(no_auth, reason="no sul_pub key")
-def test_sul_pub_csv(tmpdir):
-    csv_file = tmpdir / "sul_pub.csv"
-    sul_pub_csv(csv_file, sul_pub_host, sul_pub_key, limit=2000)
-    assert csv_file.isfile()
+def test_publications_jsonl(tmpdir):
+    jsonl_file = tmpdir / "sul_pub.jsonl"
+    sul_pub.publications_jsonl(jsonl_file, sul_pub_host, sul_pub_key, limit=2000)
+    assert jsonl_file.isfile()
 
-    df = pandas.read_csv(csv_file)
+    df = pandas.read_json(jsonl_file, orient="records", lines=True)
     assert len(df) == 2000
     assert "title" in df.columns
 

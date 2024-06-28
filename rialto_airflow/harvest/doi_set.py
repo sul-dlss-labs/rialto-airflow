@@ -3,11 +3,14 @@ import logging
 import pickle
 
 
-def create_doi_set(dimensions: str, openalex: str, sul_pub_csv: str) -> list:
+import polars as pl
+
+
+def create_doi_set(dimensions: str, openalex: str, sul_pub_jsonl: str) -> list:
     """Get DOIs from each source and dedupe."""
     dimensions_dois = dois_from_pickle(dimensions)
     openalex_dois = dois_from_pickle(openalex)
-    sul_pub_dois = get_sul_pub_dois(sul_pub_csv)
+    sul_pub_dois = get_sul_pub_dois(sul_pub_jsonl)
     unique_dois = list(set(dimensions_dois + openalex_dois + sul_pub_dois))
     logging.info(f"found {len(unique_dois)}")
 
@@ -23,10 +26,7 @@ def dois_from_pickle(pickle_file: str) -> list:
     return dois
 
 
-def get_sul_pub_dois(sul_pub_csv: str) -> list:
+def get_sul_pub_dois(sul_pub_jsonl: str) -> list:
     """Extract DOIs from sul_pub CSV and remove empty values."""
-    with open(sul_pub_csv, "r") as file:
-        reader = csv.DictReader(file)
-        doi_column = [row["doi"] for row in reader if row["doi"]]
-
-    return doi_column
+    df = pl.read_ndjson(sul_pub_jsonl)
+    return df["doi"].to_list()
