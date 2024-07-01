@@ -1,14 +1,15 @@
 import datetime
+import pickle
 from pathlib import Path
 
-from airflow.models import Variable
 from airflow.decorators import dag, task
+from airflow.models import Variable
 
-from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
-from rialto_airflow.harvest import dimensions, openalex, merge_pubs
+from rialto_airflow.harvest import dimensions, merge_pubs, openalex
+from rialto_airflow.harvest.doi_sunet import create_doi_sunet_pickle
 from rialto_airflow.harvest.sul_pub import sul_pub_csv
-from rialto_airflow.harvest.doi_set import create_doi_set
-
+from rialto_airflow.harvest.contribs import create_contribs
+from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
 
 data_dir = Variable.get("data_dir")
 sul_pub_host = Variable.get("sul_pub_host")
@@ -70,12 +71,22 @@ def harvest():
         return str(csv_file)
 
     @task()
-    def doi_set(dimensions, openalex, sul_pub):
+    def create_doi_sunet(dimensions, openalex, sul_pub, authors, snapshot_dir):
         """
-        Extract a unique list of DOIs from the dimensions doi-orcid dict,
-        the openalex doi-orcid dict, and the SUL-Pub publications.
+        Extract a mapping of DOI -> [SUNET] from the dimensions doi-orcid dict,
+        openalex doi-orcid dict, SUL-Pub publications, and authors data.
         """
-        return create_doi_set(dimensions, openalex, sul_pub)
+        pickle_file = Path(snapshot_dir) / "doi-sunet.pickle"
+        create_doi_sunet_pickle(dimensions, openalex, sul_pub, authors, pickle_file)
+
+        return str(pickle_file)
+
+    @task()
+    def doi_set(doi_sunet_pickle):
+        """
+        Use the DOI -> [SUNET] pickle to return a list of all DOIs.
+        """
+        return list(pickle.load(open(doi_sunet_pickle, "rb")).keys())
 
     @task()
     def dimensions_harvest_pubs(dois, snapshot_dir):
@@ -105,18 +116,14 @@ def harvest():
         return str(output)
 
     @task()
-    def join_authors(pubs, authors_csv):
-        """
-        Add the Stanford organizational data to the publications.
-        """
-        return True
-
-    @task()
-    def pubs_to_contribs(pubs):
+    def pubs_to_contribs(pubs, doi_sunet_pickle, authors_csv, snapshot_dir):
         """
         Get contributions from publications.
         """
-        return True
+        output = Path(snapshot_dir) / "contributions.parquet"
+        create_contribs(pubs, doi_sunet_pickle, authors_csv, output)
+
+        return str(output)
 
     @task()
     def publish(dataset):
@@ -135,7 +142,11 @@ def harvest():
 
     openalex_dois = openalex_harvest_dois(authors_csv, snapshot_dir)
 
-    dois = doi_set(dimensions_dois, openalex_dois, sul_pub)
+    doi_sunet = create_doi_sunet(
+        dimensions_dois, openalex_dois, sul_pub, authors_csv, snapshot_dir
+    )
+
+    dois = doi_set(doi_sunet)
 
     dimensions_pubs = dimensions_harvest_pubs(dois, snapshot_dir)
 
@@ -143,9 +154,7 @@ def harvest():
 
     pubs = merge_publications(sul_pub, openalex_pubs, dimensions_pubs, snapshot_dir)
 
-    pubs_authors = join_authors(pubs, authors_csv)
-
-    contribs = pubs_to_contribs(pubs_authors)
+    contribs = pubs_to_contribs(pubs, doi_sunet, authors_csv, snapshot_dir)
 
     publish(contribs)
 
