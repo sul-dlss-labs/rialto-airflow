@@ -123,10 +123,15 @@ pytest
 
 ## Deployment
 
+First you'll need to build a Docker image and publish it DockerHub:
+
+```
+DOCKER_DEFAULT_PLATFORM="linux/amd64" docker build . -t suldlss/rialto-airflow:latest
+docker push suldlss/rialto-airflow
+```
+
 Deployment to https://sul-rialto-airflow-dev.stanford.edu/ is handled like other SDR services using Capistrano. You'll need to have Ruby installed and then:
 
 ```
-gem install bundler
-bundle install
 bundle exec cap dev deploy
 ```
