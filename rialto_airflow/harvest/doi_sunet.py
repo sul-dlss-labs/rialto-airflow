@@ -2,6 +2,7 @@ import logging
 import pickle
 from collections import defaultdict
 
+# TODO: use polars instead?
 import pandas as pd
 
 
@@ -47,7 +48,7 @@ def doi_sunetids(pickle_file: str, orcid_sunet: dict) -> dict:
 
 
 def sulpub_doi_sunetids(sul_pub_csv, cap_profile_sunet):
-    # create a dataframe for sul_pubs which has a column for cap_profile_id
+    # create a dataframe for sul_pub which has a column for cap_profile_id
     # extracted from the authorship column
     df = pd.read_csv(sul_pub_csv, usecols=["doi", "authorship"])
     df = df[df["doi"].notna()]
@@ -60,7 +61,17 @@ def sulpub_doi_sunetids(sul_pub_csv, cap_profile_sunet):
     df = df.explode("cap_profile_id")
 
     # create a column for sunet using the cap_profile_sunet dictionary
-    df["sunet"] = df["cap_profile_id"].apply(lambda cap_id: cap_profile_sunet[cap_id])
+    df["sunet"] = df["cap_profile_id"].apply(
+        lambda cap_id: cap_profile_sunet.get(cap_id)
+    )
+
+    # NOTE: the sunet could be None if the cap_profile id isn't in the authors.csv
+    # log these so we get a sense of how much that happens
+    missing = df[df["sunet"].isna()]["doi"].values
+    if len(missing) > 0:
+        logging.warn(
+            f"found {len(missing)} DOI that have cap_profile_id missing from authors.csv: {','.join(missing)}."
+        )
 
     return df.groupby("doi")["sunet"].apply(list).to_dict()
 
