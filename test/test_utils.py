@@ -57,3 +57,13 @@ def test_invert_dict():
         "pub_id7",
     ]
     assert inverted_dict["pub_id2"] == ["person_id1", "person_id2"]
+
+
+def test_normalize_doi():
+    assert utils.normalize_doi("https://doi.org/10.1234/5678") == "10.1234/5678"
+    assert utils.normalize_doi("https://dx.doi.org/10.1234/5678") == "10.1234/5678"
+    assert (
+        utils.normalize_doi("10.1103/PhysRevLett.96.07390")
+        == "10.1103/physrevlett.96.07390"
+    )
+    assert utils.normalize_doi(" doi: 10.1234/5678 ") == "10.1234/5678"

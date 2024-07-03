@@ -57,8 +57,11 @@ def sul_pub_csv(tmp_path):
     with open(fixture_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["authorship", "title", "doi"])
-        writer.writerow([authorship("cap-01"), "A Publication", "10.0000/aaaa"])
-        writer.writerow([authorship("cap-02"), "A Research Article", "10.0000/1234"])
+        # include DOIs that will be normalized
+        writer.writerow([authorship("cap-01"), "A Publication", "10.0000/aAaA"])
+        writer.writerow(
+            [authorship("cap-02"), "A Research Article", "https://doi.org/10.0000/1234"]
+        )
     return fixture_file
 
 

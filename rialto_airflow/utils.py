@@ -1,6 +1,7 @@
 import csv
 import datetime
 from pathlib import Path
+import re
 
 
 def create_snapshot_dir(data_dir):
@@ -54,3 +55,11 @@ def invert_dict(dict):
         inverted_dict[i] = [k for k, v in dict.items() if i in v]
 
     return inverted_dict
+
+
+def normalize_doi(doi):
+    doi = doi.strip().lower()
+    doi = doi.replace("https://doi.org/", "").replace("https://dx.doi.org/", "")
+    doi = re.sub("^doi: ", "", doi)
+
+    return doi

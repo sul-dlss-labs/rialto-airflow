@@ -1,5 +1,7 @@
 import polars as pl
 
+from rialto_airflow.utils import normalize_doi
+
 
 def merge(sul_pub, openalex_pubs, dimensions_pubs, output):
     """
@@ -46,10 +48,10 @@ def dimensions_pubs_df(dimensions_pubs):
     # Polars is inferring volume is an integer, but it should be a string e.g. "97-B"
     df = pl.scan_csv(dimensions_pubs, schema_overrides={"volume": pl.String})
     df = df.select(
+        pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
         pl.col(
             "authors",
             "document_type",
-            "doi",
             "funders",
             "funding_section",
             "open_access",
@@ -59,7 +61,7 @@ def dimensions_pubs_df(dimensions_pubs):
             "title",
             "type",
             "year",
-        )
+        ),
     )
     df = df.rename(lambda column_name: "dim_" + column_name)
     return df
@@ -71,7 +73,7 @@ def openalex_pubs_df(openalex_pubs):
     """
     df = pl.scan_csv(openalex_pubs)
     df = df.select(
-        pl.col("doi").str.replace("https://doi.org/", ""),
+        pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
         pl.col(
             "apc_paid", "authorships", "grants", "publication_year", "title", "type"
         ),
@@ -86,6 +88,8 @@ def sulpub_df(sul_pub):
     """
     df = pl.scan_csv(sul_pub)
     df = df.drop_nulls("doi")
-    df = df.with_columns(pl.col("doi").str.replace("https://doi.org/", ""))
+    df = df.with_columns(
+        pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String)
+    )
     df = df.rename(lambda column_name: "sul_pub_" + column_name)
     return df
