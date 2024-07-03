@@ -5,6 +5,8 @@ from collections import defaultdict
 # TODO: use polars instead?
 import pandas as pd
 
+from rialto_airflow.utils import normalize_doi
+
 
 def create_doi_sunet_pickle(
     dimensions: str, openalex: str, sul_pub_csv: str, authors_csv: str, output_path
@@ -42,6 +44,7 @@ def doi_sunetids(pickle_file: str, orcid_sunet: dict) -> dict:
 
     mapping = {}
     for doi, orcids in doi_orcids.items():
+        doi = normalize_doi(doi)
         mapping[doi] = [orcid_sunet[orcid] for orcid in orcids]
 
     return mapping
@@ -52,6 +55,7 @@ def sulpub_doi_sunetids(sul_pub_csv, cap_profile_sunet):
     # extracted from the authorship column
     df = pd.read_csv(sul_pub_csv, usecols=["doi", "authorship"])
     df = df[df["doi"].notna()]
+    df["doi"] = df["doi"].apply(lambda doi: normalize_doi(doi))
 
     def extract_cap_ids(authors):
         return [a["cap_profile_id"] for a in eval(authors) if a["status"] == "approved"]

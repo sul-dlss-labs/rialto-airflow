@@ -34,7 +34,7 @@ def dimensions_pubs_csv(tmp_path):
                 "1",
                 "[]",
                 "ARTICLE",
-                "10.0000/aaaa",
+                "10.0000/aAaA",
                 "[]",
                 "[]",
                 "True",
@@ -130,7 +130,7 @@ def sul_pubs_csv(tmp_path):
                 "[]",
                 "A Published Research Article",
                 "2024",
-                "https://doi.org/10.0000/dddd",
+                "doi: 10.0000/dDdD",
             ]
         )
     return fixture_file
