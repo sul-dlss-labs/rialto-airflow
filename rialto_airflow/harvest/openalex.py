@@ -78,11 +78,13 @@ def publications_csv(dois: list, csv_file: str) -> None:
             writer.writerow(pub)
 
 
-def publications_from_dois(dois: list, batch_size=75):
+def publications_from_dois(dois: list):
     """
     Look up works by DOI in batches that fit within OpenAlex request size limits
     """
-    for doi_batch in batched(dois, batch_size):
+    for doi_batch in batched(dois, 50):
+        # Setting batch size to 50 to avoid 400 errors from OpenAlex API when GET query string is greater than 4096 characters
+        # Based on experimentation, 75 is too high. 50 is the default per_page size, so we could consider removing pagination in the future.
         # TODO: do we need this to stay within 100,000 requests / day API quota?
         time.sleep(1)
 
