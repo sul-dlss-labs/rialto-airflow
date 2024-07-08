@@ -50,6 +50,7 @@ def test_publications_from_dois():
     pubs = list(openalex.publications_from_dois(dois))
     assert len(pubs) == 231, "should paginate (page size=200)"
     assert len(pubs) == len(set([pub["doi"] for pub in pubs])), "DOIs are unique"
+    assert set(openalex.FIELDS) == set(pubs[0].keys()), "All fields accounted for."
     assert len(pubs[0].keys()) == 51, "first publication has 51 columns"
     assert len(pubs[1].keys()) == 51, "second publication has 51 columns"
 
