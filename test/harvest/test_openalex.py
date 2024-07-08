@@ -55,6 +55,16 @@ def test_publications_from_dois():
     assert len(pubs[1].keys()) == 51, "second publication has 51 columns"
 
 
+def test_publications_from_invalid_dois(caplog):
+    # Error may change if OpenAlex API or pyalex changes
+    invalid_dois = ["doi-with-comma,a", "10.1145/3442188.3445922"]
+    assert len(list(openalex.publications_from_dois(invalid_dois))) == 1
+    assert (
+        "OpenAlex QueryError for doi-with-comma,a: Invalid query parameter"
+        in caplog.text
+    ), "logs error message"
+
+
 def test_publications_csv(tmp_path):
     pubs_csv = tmp_path / "openalex-pubs.csv"
     openalex.publications_csv(

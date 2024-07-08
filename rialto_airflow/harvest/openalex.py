@@ -6,7 +6,7 @@ import time
 from urllib.parse import quote
 
 from more_itertools import batched
-from pyalex import Authors, Works, config
+from pyalex import Authors, Works, config, api
 
 from rialto_airflow.utils import invert_dict
 
@@ -89,9 +89,21 @@ def publications_from_dois(dois: list):
         time.sleep(1)
 
         doi_list = quote("|".join([doi for doi in doi_batch]))
-        for page in Works().filter(doi=doi_list).paginate(per_page=200):
-            for pub in page:
-                yield normalize_publication(pub)
+        try:
+            for page in Works().filter(doi=doi_list).paginate(per_page=200):
+                for pub in page:
+                    yield normalize_publication(pub)
+        except api.QueryError:
+            # try dois individually
+            for doi in doi_batch:
+                try:
+                    pubs = Works().filter(doi=doi).get()
+                    if len(pubs) > 1:
+                        logging.warn(f"Found multiple publications for DOI {doi}")
+                    yield normalize_publication(pubs[0])
+                except api.QueryError as e:
+                    logging.error(f"OpenAlex QueryError for {doi}: {e}")
+                    continue
 
 
 def normalize_publication(pub) -> dict:
