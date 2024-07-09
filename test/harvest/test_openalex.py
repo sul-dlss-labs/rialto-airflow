@@ -65,6 +65,17 @@ def test_publications_from_invalid_dois(caplog):
     ), "logs error message"
 
 
+def test_publications_from_invalid_with_comma(caplog):
+    # OpenAlex will interpret a DOI string with a comma as two DOIs but
+    # Does not return a result for the first half even if valid. Will return an empty list
+    invalid_doi = ["10.1002/cncr.33546,-(wileyonlinelibrary.com)"]
+    assert len(list(openalex.publications_from_dois(invalid_doi))) == 0
+    assert (
+        "OpenAlex QueryError for 10.1002/cncr.33546,-(wileyonlinelibrary.com): Invalid query parameter"
+        in caplog.text
+    ), "logs error message"
+
+
 def test_publications_csv(tmp_path):
     pubs_csv = tmp_path / "openalex-pubs.csv"
     openalex.publications_csv(

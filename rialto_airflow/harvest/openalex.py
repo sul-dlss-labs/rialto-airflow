@@ -100,7 +100,8 @@ def publications_from_dois(dois: list):
                     pubs = Works().filter(doi=doi).get()
                     if len(pubs) > 1:
                         logging.warn(f"Found multiple publications for DOI {doi}")
-                    yield normalize_publication(pubs[0])
+                    if len(pubs) > 0:
+                        yield normalize_publication(pubs[0])
                 except api.QueryError as e:
                     logging.error(f"OpenAlex QueryError for {doi}: {e}")
                     continue
