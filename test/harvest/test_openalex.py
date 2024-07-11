@@ -119,3 +119,9 @@ def test_pyalex_urlencoding():
         )
         == 2
     ), "we handle url URL encoding DOIs until pyalex does"
+
+
+def test_pyalex_varnish_bug():
+    # it seems like this author has a few records that are so big they blow out
+    # OpenAlex's Varnish index. See https://groups.google.com/u/1/g/openalex-community/c/hl09WRF3Naw
+    assert len(list(openalex.dois_from_orcid("0000-0003-3859-2905"))) > 270

@@ -58,7 +58,9 @@ def dois_from_orcid(orcid: str, limit=None):
 
     # get all the works for the openalex author id
     work_count = 0
-    for page in Works().filter(author={"id": author_id}).paginate(per_page=200):
+    for page in (
+        Works().filter(author={"id": author_id}).select(["doi"]).paginate(per_page=200)
+    ):
         for pub in page:
             if pub.get("doi"):
                 work_count += 1
