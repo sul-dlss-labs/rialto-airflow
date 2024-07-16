@@ -121,6 +121,7 @@ def test_pyalex_urlencoding():
     ), "we handle url URL encoding DOIs until pyalex does"
 
 
+@pytest.mark.skip(reason="This record no longer exhibits the problem")
 def test_pyalex_varnish_bug():
     # it seems like this author has a few records that are so big they blow out
     # OpenAlex's Varnish index. See https://groups.google.com/u/1/g/openalex-community/c/hl09WRF3Naw

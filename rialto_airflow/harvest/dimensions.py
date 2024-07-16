@@ -22,6 +22,7 @@ def dois_from_orcid(orcid):
         """.format(orcid)
 
     # The Dimensions API can flake out sometimes, so try to catch & retry.
+    # TODO: Consider using retry param in query() instead
     try_count = 0
     while try_count < 20:
         try_count += 1
@@ -82,7 +83,7 @@ def publications_from_dois(dois: list, batch_size=200):
             limit 1000
             """
 
-        result = dsl().query(q)
+        result = dsl().query(q, retry=5)
 
         for pub in result["publications"]:
             yield normalize_publication(pub)

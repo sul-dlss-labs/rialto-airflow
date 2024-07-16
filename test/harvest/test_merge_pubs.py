@@ -138,7 +138,7 @@ def sul_pubs_csv(tmp_path):
 
 def test_dimensions_pubs_df(dimensions_pubs_csv):
     lazy_df = merge_pubs.dimensions_pubs_df(dimensions_pubs_csv)
-    assert type(lazy_df) == pl.lazyframe.frame.LazyFrame
+    assert isinstance(lazy_df, pl.lazyframe.frame.LazyFrame)
     df = lazy_df.collect()
     assert df.shape[0] == 2
     assert "bogus" not in df.columns, "Unneeded columns have been dropped"
@@ -147,7 +147,7 @@ def test_dimensions_pubs_df(dimensions_pubs_csv):
 
 def test_openalex_pubs_df(openalex_pubs_csv):
     lazy_df = merge_pubs.openalex_pubs_df(openalex_pubs_csv)
-    assert type(lazy_df) == pl.lazyframe.frame.LazyFrame
+    assert isinstance(lazy_df, pl.lazyframe.frame.LazyFrame)
     df = lazy_df.collect()
     assert df.shape[0] == 2
     assert "bogus" not in df.columns, "Unneeded columns have been dropped"
@@ -156,7 +156,7 @@ def test_openalex_pubs_df(openalex_pubs_csv):
 
 def test_sulpub_df(sul_pubs_csv):
     lazy_df = merge_pubs.sulpub_df(sul_pubs_csv)
-    assert type(lazy_df) == pl.lazyframe.frame.LazyFrame
+    assert isinstance(lazy_df, pl.lazyframe.frame.LazyFrame)
     df = lazy_df.collect()
     assert df.shape[0] == 2, "Row without a doi has been dropped"
     assert df.columns == [
