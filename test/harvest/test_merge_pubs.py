@@ -117,20 +117,28 @@ def sul_pubs_csv(tmp_path):
         writer = csv.writer(csvfile)
         header = ["authorship", "title", "year", "doi"]
         writer.writerow(header)
-        writer.writerow(["[]", "A Publication", "2024", "10.0000/cccc"])
+        writer.writerow(["[]", "A Publication", 2024, "10.0000/cccc"])
         writer.writerow(
             [
                 "[]",
                 "A Research Article",
-                "2024",
+                2024,
             ]
         )
         writer.writerow(
             [
                 "[]",
                 "A Published Research Article",
-                "2024",
+                2024,
                 "doi: 10.0000/dDdD",
+            ]
+        )
+        writer.writerow(
+            [
+                "[]",
+                "A Published Research Article",
+                "n/ a",
+                "doi: 10.0000/eeee",
             ]
         )
     return fixture_file
@@ -158,14 +166,18 @@ def test_sulpub_df(sul_pubs_csv):
     lazy_df = merge_pubs.sulpub_df(sul_pubs_csv)
     assert isinstance(lazy_df, pl.lazyframe.frame.LazyFrame)
     df = lazy_df.collect()
-    assert df.shape[0] == 2, "Row without a doi has been dropped"
+    assert df.shape[0] == 3, "Row without a doi has been dropped"
     assert df.columns == [
         "sul_pub_authorship",
         "sul_pub_title",
         "sul_pub_year",
         "sul_pub_doi",
     ]
-    assert df["sul_pub_doi"].to_list() == ["10.0000/cccc", "10.0000/dddd"]
+    assert df["sul_pub_doi"].to_list() == [
+        "10.0000/cccc",
+        "10.0000/dddd",
+        "10.0000/eeee",
+    ]
 
 
 def test_merge(tmp_path, sul_pubs_csv, openalex_pubs_csv, dimensions_pubs_csv):
@@ -173,8 +185,8 @@ def test_merge(tmp_path, sul_pubs_csv, openalex_pubs_csv, dimensions_pubs_csv):
     merge_pubs.merge(sul_pubs_csv, openalex_pubs_csv, dimensions_pubs_csv, output)
     assert output.is_file(), "output file has been created"
     df = pl.read_parquet(output)
-    assert df.shape[0] == 4
+    assert df.shape[0] == 5
     assert df.shape[1] == 25
     assert set(df["doi"].to_list()) == set(
-        ["10.0000/aaaa", "10.0000/1234", "10.0000/cccc", "10.0000/dddd"]
+        ["10.0000/aaaa", "10.0000/1234", "10.0000/cccc", "10.0000/dddd", "10.0000/eeee"]
     )

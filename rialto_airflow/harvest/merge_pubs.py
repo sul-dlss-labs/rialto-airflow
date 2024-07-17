@@ -86,7 +86,7 @@ def sulpub_df(sul_pub):
     """
     Create a sulpub LazyFrame and rename columns
     """
-    df = pl.scan_csv(sul_pub)
+    df = pl.scan_csv(sul_pub, null_values="n/ a")
     df = df.drop_nulls("doi")
     df = df.with_columns(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String)
