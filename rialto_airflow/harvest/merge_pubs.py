@@ -49,6 +49,7 @@ def dimensions_pubs_df(dimensions_pubs):
     df = pl.scan_csv(
         dimensions_pubs,
         schema_overrides={"volume": pl.String, "pmid": pl.String, "year": pl.String},
+        low_memory=True,
     )
     df = df.select(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
@@ -74,7 +75,9 @@ def openalex_pubs_df(openalex_pubs):
     """
     Create an openalex pubs LazyFrame and rename columns
     """
-    df = pl.scan_csv(openalex_pubs, schema_overrides={"publication_year": pl.String})
+    df = pl.scan_csv(
+        openalex_pubs, schema_overrides={"publication_year": pl.String}, low_memory=True
+    )
     df = df.select(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
         pl.col(
@@ -89,7 +92,11 @@ def sulpub_df(sul_pub):
     """
     Create a sulpub LazyFrame and rename columns
     """
-    df = pl.scan_csv(sul_pub, schema_overrides={"year": pl.String, "pmid": pl.String})
+    df = pl.scan_csv(
+        sul_pub,
+        schema_overrides={"year": pl.String, "pmid": pl.String},
+        low_memory=True,
+    )
     df = df.drop_nulls("doi")
     df = df.with_columns(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String)
