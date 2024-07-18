@@ -47,7 +47,8 @@ def dimensions_pubs_df(dimensions_pubs):
     """
     # Polars is inferring volume is an integer, but it should be a string e.g. "97-B"
     df = pl.scan_csv(
-        dimensions_pubs, schema_overrides={"volume": pl.String, "year": pl.String}
+        dimensions_pubs,
+        schema_overrides={"volume": pl.String, "pmid": pl.String, "year": pl.String},
     )
     df = df.select(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
@@ -88,7 +89,7 @@ def sulpub_df(sul_pub):
     """
     Create a sulpub LazyFrame and rename columns
     """
-    df = pl.scan_csv(sul_pub, schema_overrides={"year": pl.String})
+    df = pl.scan_csv(sul_pub, schema_overrides={"year": pl.String, "pmid": pl.String})
     df = df.drop_nulls("doi")
     df = df.with_columns(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String)
