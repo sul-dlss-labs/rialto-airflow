@@ -11,7 +11,8 @@ dependencies = [
     "dimcli",
     "polars>=1.2",
     "pyalex",
-    "more-itertools"
+    "more-itertools",
+    "pyarrow"
 ]
 
 [tool.pytest.ini_options]
