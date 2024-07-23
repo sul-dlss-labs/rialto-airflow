@@ -54,7 +54,6 @@ def dimensions_pubs_df(dimensions_pubs):
     df = df.select(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
         pl.col(
-            "authors",
             "document_type",
             "funders",
             "funding_section",
@@ -80,9 +79,7 @@ def openalex_pubs_df(openalex_pubs):
     )
     df = df.select(
         pl.col("doi").map_elements(normalize_doi, return_dtype=pl.String),
-        pl.col(
-            "apc_paid", "authorships", "grants", "publication_year", "title", "type"
-        ),
+        pl.col("apc_paid", "grants", "publication_year", "title", "type"),
     )
     df = df.rename(lambda column_name: "openalex_" + column_name)
     return df
