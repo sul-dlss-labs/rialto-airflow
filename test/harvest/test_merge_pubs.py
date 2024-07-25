@@ -186,7 +186,7 @@ def test_merge(tmp_path, sul_pubs_csv, openalex_pubs_csv, dimensions_pubs_csv):
     assert output.is_file(), "output file has been created"
     df = pl.read_parquet(output)
     assert df.shape[0] == 5
-    assert df.shape[1] == 25
+    assert df.shape[1] == 23
     assert set(df["doi"].to_list()) == set(
         ["10.0000/aaaa", "10.0000/1234", "10.0000/cccc", "10.0000/dddd", "10.0000/eeee"]
     )
