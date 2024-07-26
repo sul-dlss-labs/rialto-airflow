@@ -95,6 +95,12 @@ uv pip compile pyproject.toml -o requirements.txt
 
 Unlike poetry, uv's dependency resolution is not platform-agnostic. If we find we need to generate a requirements.txt for linux, we can use [uv's multi-platform resolution options](https://github.com/astral-sh/uv?tab=readme-ov-file#multi-platform-resolution).
 
+### Upgrading dependencies
+To upgrade Python dependencies:
+```
+uv pip compile pyproject.toml -o requirements.txt --upgrade
+```
+
 ## Run Tests
 
 First enable the virtual environment:
