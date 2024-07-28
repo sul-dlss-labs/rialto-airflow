@@ -1,7 +1,12 @@
 import csv
 import datetime
-from pathlib import Path
 import re
+import sys
+from itertools import batched
+from pathlib import Path
+
+import pyarrow
+from pyarrow.parquet import ParquetWriter
 
 
 def create_snapshot_dir(data_dir):
@@ -63,3 +68,18 @@ def normalize_doi(doi):
     doi = re.sub("^doi: ", "", doi)
 
     return doi
+
+
+def csv_to_parquet(csv_file, parquet_file, batch_size=10_000):
+    csv.field_size_limit(sys.maxsize)
+
+    csv_input = open(csv_file)
+    reader = csv.DictReader(csv_input)
+
+    # naively assume all columns are strings
+    schema = pyarrow.schema([(name, pyarrow.string()) for name in reader.fieldnames])
+
+    with ParquetWriter(open(parquet_file, "wb"), schema, compression="zstd") as writer:
+        for rows in batched(reader, batch_size):
+            table = pyarrow.Table.from_pylist(rows, schema)
+            writer.write_table(table)

@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 import pytest
+import polars
 
 from rialto_airflow import utils
 
@@ -67,3 +68,14 @@ def test_normalize_doi():
         == "10.1103/physrevlett.96.07390"
     )
     assert utils.normalize_doi(" doi: 10.1234/5678 ") == "10.1234/5678"
+
+
+def test_csv_to_parquet(tmp_path):
+    csv_file = Path("test/data/authors.csv")
+    parquet_file = tmp_path / "authors.parquet"
+    utils.csv_to_parquet(csv_file, parquet_file)
+
+    assert parquet_file.is_file()
+    df = polars.read_parquet(parquet_file)
+
+    assert df.shape == (10, 2)
