@@ -126,11 +126,22 @@ def harvest():
         return str(output)
 
     @task()
-    def publish(dataset):
+    def publish(pubs_to_contribs, merge_publications):
         """
         Publish aggregate data to JupyterHub environment.
         """
-        return True
+        contribs_path = Path(data_dir) / "latest" / "contributions.parquet"
+        pubs_path = Path(data_dir) / "latest" / "publications.parquet"
+
+        if contribs_path.exists():
+            contribs_path.unlink()
+        if pubs_path.exists():
+            pubs_path.unlink()
+
+        contribs_path.symlink_to(pubs_to_contribs)
+        pubs_path.symlink_to(merge_publications)
+
+        return str(contribs_path), str(pubs_path)
 
     snapshot_dir = setup()
 
@@ -156,7 +167,7 @@ def harvest():
 
     contribs = pubs_to_contribs(pubs, doi_sunet, authors_csv, snapshot_dir)
 
-    publish(contribs)
+    publish(contribs, pubs)
 
 
 harvest()
