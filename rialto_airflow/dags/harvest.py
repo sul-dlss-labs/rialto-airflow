@@ -1,6 +1,7 @@
 import datetime
 import pickle
 from pathlib import Path
+import shutil
 
 from airflow.decorators import dag, task
 from airflow.models import Variable
@@ -12,6 +13,7 @@ from rialto_airflow.harvest.contribs import create_contribs
 from rialto_airflow.utils import create_snapshot_dir, rialto_authors_file
 
 data_dir = Variable.get("data_dir")
+publish_dir = Variable.get("publish_dir")
 sul_pub_host = Variable.get("sul_pub_host")
 sul_pub_key = Variable.get("sul_pub_key")
 
@@ -130,18 +132,13 @@ def harvest():
         """
         Publish aggregate data to JupyterHub environment.
         """
-        contribs_path = Path(data_dir) / "latest" / "contributions.parquet"
-        pubs_path = Path(data_dir) / "latest" / "publications.parquet"
+        contribs_path = Path(publish_dir) / "contributions.parquet"
+        pubs_path = Path(publish_dir) / "publications.parquet"
 
-        if contribs_path.exists():
-            contribs_path.unlink()
-        if pubs_path.exists():
-            pubs_path.unlink()
+        shutil.copyfile(pubs_to_contribs, contribs_path)
+        shutil.copyfile(merge_publications, pubs_path)
 
-        contribs_path.symlink_to(pubs_to_contribs)
-        pubs_path.symlink_to(merge_publications)
-
-        return str(contribs_path), str(pubs_path)
+        return str(publish_dir)
 
     snapshot_dir = setup()
 
