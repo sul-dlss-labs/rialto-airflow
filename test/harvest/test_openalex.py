@@ -51,8 +51,8 @@ def test_publications_from_dois():
     assert len(pubs) == 231, "should paginate (page size=200)"
     assert len(pubs) == len(set([pub["doi"] for pub in pubs])), "DOIs are unique"
     assert set(openalex.FIELDS) == set(pubs[0].keys()), "All fields accounted for."
-    assert len(pubs[0].keys()) == 51, "first publication has 51 columns"
-    assert len(pubs[1].keys()) == 51, "second publication has 51 columns"
+    assert len(pubs[0].keys()) == 52, "first publication has 52 columns"
+    assert len(pubs[1].keys()) == 52, "second publication has 52 columns"
 
 
 def test_publications_from_invalid_dois(caplog):
