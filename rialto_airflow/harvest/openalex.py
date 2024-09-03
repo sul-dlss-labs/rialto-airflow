@@ -127,6 +127,7 @@ FIELDS = [
     "apc_paid",
     "best_oa_location",
     "biblio",
+    "citation_normalized_percentile",
     "cited_by_api_url",
     "cited_by_count",
     "cited_by_percentile_year",
