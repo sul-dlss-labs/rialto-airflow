@@ -97,7 +97,7 @@ def openalex_pubs_csv(tmp_path):
                 "A Publication",
                 "article",
                 "https://doi.org/10.0000/cccc",
-                "green"
+                "green",
             ]
         )
         writer.writerow(
@@ -110,7 +110,7 @@ def openalex_pubs_csv(tmp_path):
                 "A Research Article",
                 "article",
                 "https://doi.org/10.0000/1234",
-                "bronze"
+                "bronze",
             ]
         )
     return fixture_file
