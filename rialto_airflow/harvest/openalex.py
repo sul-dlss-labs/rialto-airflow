@@ -37,7 +37,7 @@ def doi_orcids_pickle(authors_csv, pickle_file, limit=None):
 
 def dois_from_orcid(orcid: str, limit=None):
     """
-    Pass in the ORCID ID and get back an iterator of DOIs for publications authored by that person.
+    Pass in the ORCID ID and get back a list of DOIs for publications authored by that person.
     """
 
     # TODO: I think we can maybe have this function take a list of orcids and
@@ -57,16 +57,18 @@ def dois_from_orcid(orcid: str, limit=None):
     author_id = authors[0]["id"]
 
     # get all the works for the openalex author id
-    work_count = 0
+    dois = set()
     for page in (
         Works().filter(author={"id": author_id}).select(["doi"]).paginate(per_page=200)
     ):
         for pub in page:
             if pub.get("doi"):
-                work_count += 1
-                if limit is not None and work_count > limit:
-                    return
-                yield pub.get("doi").replace("https://doi.org/", "")
+                doi = pub.get("doi").replace("https://doi.org/", "")
+                dois.add(doi)
+                if limit is not None and len(dois) == limit:
+                    return list(dois)
+
+    return list(dois)
 
 
 def publications_csv(dois: list, csv_file: str) -> None:
@@ -147,6 +149,7 @@ FIELDS = [
     "id",
     "ids",
     "indexed_in",
+    "institution_assertions",
     "institutions_distinct_count",
     "is_authors_truncated",
     "is_paratext",

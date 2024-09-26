@@ -57,11 +57,7 @@ def dimensions_pubs_df(dimensions_pubs):
             "document_type",
             "funders",
             "funding_section",
-            "linkout",
             "open_access",
-            "publisher",
-            "research_orgs",
-            "researchers",
             "title",
             "type",
             "year",
@@ -86,7 +82,7 @@ def openalex_pubs_df(openalex_pubs):
             "publication_year",
             "title",
             "type",
-            "best_oa_location",
+            "open_access",
         ),
     )
     df = df.rename(lambda column_name: "openalex_" + column_name)

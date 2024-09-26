@@ -18,7 +18,7 @@ def test_dois_from_orcid_paging():
     # for Shanhui Fan who has a lot of publications (> 1300)
     dois = list(openalex.dois_from_orcid("0000-0002-0081-9732", limit=300))
     assert len(dois) == 300, "paging is limiting to 200 works"
-    assert len(set(dois)) == 300, "the dois are unique"
+    assert len(set(dois)) == len(dois), "the dois are unique"
 
 
 def test_doi_orcids_pickle(tmp_path):
@@ -48,11 +48,12 @@ def test_publications_from_dois():
 
     # look up the publication metadata for them
     pubs = list(openalex.publications_from_dois(dois))
-    assert len(pubs) == 231, "should paginate (page size=200)"
-    assert len(pubs) == len(set([pub["doi"] for pub in pubs])), "DOIs are unique"
+
+    # >= is used because sometimes there can be multiple works for a DOI!
+    assert len(pubs) >= 231, "should paginate (page size=200)"
     assert set(openalex.FIELDS) == set(pubs[0].keys()), "All fields accounted for."
-    assert len(pubs[0].keys()) == 52, "first publication has 52 columns"
-    assert len(pubs[1].keys()) == 52, "second publication has 52 columns"
+    assert len(pubs[0].keys()) == 53, "first publication has 53 columns"
+    assert len(pubs[1].keys()) == 53, "second publication has 53 columns"
 
 
 def test_publications_from_invalid_dois(caplog):
