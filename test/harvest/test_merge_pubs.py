@@ -84,7 +84,7 @@ def openalex_pubs_csv(tmp_path):
             "title",
             "type",
             "doi",
-            "best_oa_location",
+            "open_access",
         ]
         writer.writerow(header)
         writer.writerow(
@@ -97,7 +97,7 @@ def openalex_pubs_csv(tmp_path):
                 "A Publication",
                 "article",
                 "https://doi.org/10.0000/cccc",
-                '{is_oa: true, landing_page_url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1398957", pdf_url: null, source: { id: "https://openalex.org/S2764455111", display_name: "PubMed Central", issn_l: null, issn: null, host_organization: "https://openalex.org/I1299303238", type: "repository" }, license: null, version: "publishedVersion"}',
+                'green'
             ]
         )
         writer.writerow(
@@ -110,7 +110,7 @@ def openalex_pubs_csv(tmp_path):
                 "A Research Article",
                 "article",
                 "https://doi.org/10.0000/1234",
-                "",
+                "bronze"
             ]
         )
     return fixture_file
@@ -165,7 +165,7 @@ def test_openalex_pubs_df(openalex_pubs_csv):
     df = lazy_df.collect()
     assert df.shape[0] == 2
     assert "bogus" not in df.columns, "Unneeded columns have been dropped"
-    assert "openalex_best_oa_location" in df.columns
+    assert "openalex_open_access" in df.columns
     assert df["openalex_doi"].to_list() == ["10.0000/cccc", "10.0000/1234"]
 
 
@@ -193,7 +193,7 @@ def test_merge(tmp_path, sul_pubs_csv, openalex_pubs_csv, dimensions_pubs_csv):
     assert output.is_file(), "output file has been created"
     df = pl.read_parquet(output)
     assert df.shape[0] == 5
-    assert df.shape[1] == 25
+    assert df.shape[1] == 21
     assert set(df["doi"].to_list()) == set(
         ["10.0000/aaaa", "10.0000/1234", "10.0000/cccc", "10.0000/dddd", "10.0000/eeee"]
     )

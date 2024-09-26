@@ -147,6 +147,7 @@ FIELDS = [
     "id",
     "ids",
     "indexed_in",
+    "institution_assertions",
     "institutions_distinct_count",
     "is_authors_truncated",
     "is_paratext",
