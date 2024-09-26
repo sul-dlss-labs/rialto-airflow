@@ -97,7 +97,7 @@ def openalex_pubs_csv(tmp_path):
                 "A Publication",
                 "article",
                 "https://doi.org/10.0000/cccc",
-                'green'
+                "green"
             ]
         )
         writer.writerow(
