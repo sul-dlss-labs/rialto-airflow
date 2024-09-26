@@ -16,10 +16,10 @@ from rialto_airflow.utils import invert_dict
 def dois_from_orcid(orcid):
     logging.info(f"looking up dois for orcid {orcid}")
     q = """
-        search publications where researchers.orcid_id = "{}" and year in [2018:{}]
+        search publications where researchers.orcid_id = "{}"
         return publications [doi]
         limit 1000
-        """.format(orcid, 2024)
+        """.format(orcid)
 
     # The Dimensions API can flake out sometimes, so try to catch & retry.
     # TODO: Consider using retry param in query() instead
