@@ -71,7 +71,6 @@ def dois_from_orcid(orcid: str, limit=None):
     return list(dois)
 
 
-
 def publications_csv(dois: list, csv_file: str) -> None:
     """
     Get publication records for a list of DOIs and create a CSV file.

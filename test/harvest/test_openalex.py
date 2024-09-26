@@ -48,7 +48,7 @@ def test_publications_from_dois():
 
     # look up the publication metadata for them
     pubs = list(openalex.publications_from_dois(dois))
-   
+
     # >= is used because sometimes there can be multiple works for a DOI!
     assert len(pubs) >= 231, "should paginate (page size=200)"
     assert set(openalex.FIELDS) == set(pubs[0].keys()), "All fields accounted for."
